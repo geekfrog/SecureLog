@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="WARN" packages="team.frog.securelogecc.log4j2">
+    <Appenders>
+        <File name="FILE" fileName="out/perf-secure.log" append="false">
+            <PatternLayout pattern="%msg%n MDC_SECURE_DATA=%X{SECURE_DATA}%n"/>
+        </File>
+
+        <Rewrite name="SECURE_FILE">
+            <SecureMaskingPolicy/>
+            <AppenderRef ref="FILE"/>
+        </Rewrite>
+
+        <Async name="ASYNC_SECURE_FILE" includeLocation="true">
+            <AppenderRef ref="SECURE_FILE"/>
+        </Async>
+    </Appenders>
+
+    <Loggers>
+        <Logger name="perf.file" level="info" additivity="false">
+            <AppenderRef ref="ASYNC_SECURE_FILE"/>
+        </Logger>
+        <Root level="info"/>
+    </Loggers>
+</Configuration>

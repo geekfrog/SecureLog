@@ -1,0 +1,11 @@
+*.class
+*.log
+
+# Java build outputs
+**/target/
+**/out/
+
+# OS / IDE
+.idea/
+*.iml
+
