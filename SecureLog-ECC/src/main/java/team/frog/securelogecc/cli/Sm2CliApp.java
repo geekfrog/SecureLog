@@ -79,6 +79,10 @@ public class Sm2CliApp {
 
         System.out.println("公钥（Base64）:");
         System.out.println(publicKeyBase64);
+        String publicKeyFingerprint = EccCore.publicKeyFingerprint(publicKeyBase64);
+        if (publicKeyFingerprint != null) {
+            System.out.println("公钥摘要: " + publicKeyFingerprint);
+        }
         System.out.println("私钥（Base64）:");
         System.out.println(privateKeyBase64);
         System.out.println("密钥已保存到文件：");

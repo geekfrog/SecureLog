@@ -52,6 +52,8 @@ public class ConfigConstants {
 
     public static final String MDC_TRACE_ID_KEYS = "mdc.trace.id.keys";
     public static final String DEFAULT_MDC_TRACE_ID_KEYS = "trace_id,traceId,requestId,correlationId,X-Trace-Code,X-Trace-Id";
+    public static final String MDC_PUB_KEY_FINGERPRINT = "mdc.pub.key.fingerprint.key";
+    public static final String DEFAULT_MDC_PUB_KEY_FINGERPRINT = "PUB_KEY_FINGERPRINT";
 
     public static final String MASKING_SENSITIVE_KEYS = "ecc.masking.sensitive.keys";
     public static final String DEFAULT_MASKING_SENSITIVE_KEYS = "password,pwd,pass,token,access_token,clientSecret,secret,apiKey,idcard,cardNumber,jbrCardNumber,mobile,phone,tel,email,address";

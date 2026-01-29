@@ -1,6 +1,7 @@
 package team.frog.securelogecc.manager;
 
 import team.frog.securelogecc.config.ConfigConstants;
+import team.frog.securelogecc.core.EccCore;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
@@ -17,6 +18,8 @@ public class ConfigManager {
 
     private Properties properties;
     private volatile boolean initialized = false;
+    private volatile String cachedPublicKeyBase64;
+    private volatile String cachedPublicKeyFingerprint;
 
     private ConfigManager() {
         this.properties = new Properties();
@@ -61,6 +64,8 @@ public class ConfigManager {
                 // 恢复之前设置的属性（这些属性优先级更高）
                 properties.putAll(currentProperties);
                 initialized = true;
+                cachedPublicKeyBase64 = null;
+                cachedPublicKeyFingerprint = null;
                 return;
             }
         }
@@ -72,6 +77,8 @@ public class ConfigManager {
                 // 恢复之前设置的属性（这些属性优先级更高）
                 properties.putAll(currentProperties);
                 initialized = true;
+                cachedPublicKeyBase64 = null;
+                cachedPublicKeyFingerprint = null;
                 return;
             }
         } catch (FileNotFoundException e) {
@@ -83,6 +90,8 @@ public class ConfigManager {
         // 恢复之前设置的属性（这些属性优先级更高）
         properties.putAll(currentProperties);
         initialized = true;
+        cachedPublicKeyBase64 = null;
+        cachedPublicKeyFingerprint = null;
     }
 
     /**
@@ -92,6 +101,7 @@ public class ConfigManager {
         properties.setProperty(ConfigConstants.SYSTEM_ID_CHANGE_INTERVAL_MINUTES, String.valueOf(ConfigConstants.DEFAULT_SYSTEM_ID_CHANGE_INTERVAL_MINUTES));
         properties.setProperty(ConfigConstants.MDC_SECURE_DATA_KEY, ConfigConstants.DEFAULT_MDC_SECURE_DATA_KEY);
         properties.setProperty(ConfigConstants.MDC_TRACE_ID_KEYS, ConfigConstants.DEFAULT_MDC_TRACE_ID_KEYS);
+        properties.setProperty(ConfigConstants.MDC_PUB_KEY_FINGERPRINT, ConfigConstants.DEFAULT_MDC_PUB_KEY_FINGERPRINT);
         properties.setProperty(ConfigConstants.CRYPTO_PROVIDER, ConfigConstants.DEFAULT_CRYPTO_PROVIDER);
         properties.setProperty(ConfigConstants.SM2_CURVE_NAME, ConfigConstants.DEFAULT_SM2_CURVE_NAME);
         properties.setProperty(ConfigConstants.SM2_CIPHER_TRANSFORMATION, ConfigConstants.DEFAULT_SM2_CIPHER_TRANSFORMATION);
@@ -115,6 +125,21 @@ public class ConfigManager {
             }
         }
         return properties.getProperty(key, defaultValue);
+    }
+
+    public String getPublicKeyFingerprint() {
+        String publicKeyBase64 = getProperty(ConfigConstants.ECC_PUBLIC_KEY, "");
+        if (publicKeyBase64 == null) {
+            return null;
+        }
+        String cachedKey = this.cachedPublicKeyBase64;
+        if (cachedKey != null && cachedKey.equals(publicKeyBase64)) {
+            return cachedPublicKeyFingerprint;
+        }
+        String fingerprint = EccCore.publicKeyFingerprint(publicKeyBase64);
+        this.cachedPublicKeyBase64 = publicKeyBase64;
+        this.cachedPublicKeyFingerprint = fingerprint;
+        return fingerprint;
     }
 
     /**
@@ -178,6 +203,10 @@ public class ConfigManager {
      */
     public void setProperty(String key, String value) {
         properties.setProperty(key, value);
+        if (ConfigConstants.ECC_PUBLIC_KEY.equals(key)) {
+            this.cachedPublicKeyBase64 = value;
+            this.cachedPublicKeyFingerprint = EccCore.publicKeyFingerprint(value);
+        }
     }
 
     /**

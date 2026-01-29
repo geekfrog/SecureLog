@@ -36,6 +36,7 @@ public class SecureMaskingAppender extends UnsynchronizedAppenderBase<ILoggingEv
     private final AppenderAttachableImpl<ILoggingEvent> aai = new AppenderAttachableImpl<>();
     private final LogMaskingProcessor maskingProcessor = new LogMaskingProcessor();
     private volatile String secureDataKey = ConfigConstants.DEFAULT_MDC_SECURE_DATA_KEY;
+    private volatile String publicKeyFingerprintKey = ConfigConstants.DEFAULT_MDC_PUB_KEY_FINGERPRINT;
     private volatile String[] traceIdKeys;
 
     @Override
@@ -43,6 +44,10 @@ public class SecureMaskingAppender extends UnsynchronizedAppenderBase<ILoggingEv
         this.secureDataKey = ConfigManager.getInstance().getProperty(
                 ConfigConstants.MDC_SECURE_DATA_KEY,
                 ConfigConstants.DEFAULT_MDC_SECURE_DATA_KEY
+        );
+        this.publicKeyFingerprintKey = ConfigManager.getInstance().getProperty(
+                ConfigConstants.MDC_PUB_KEY_FINGERPRINT,
+                ConfigConstants.DEFAULT_MDC_PUB_KEY_FINGERPRINT
         );
         String traceIdKeysConfig = ConfigManager.getInstance().getProperty(
                 ConfigConstants.MDC_TRACE_ID_KEYS,
@@ -64,6 +69,7 @@ public class SecureMaskingAppender extends UnsynchronizedAppenderBase<ILoggingEv
             LogMaskingProcessor.ProcessResult result = maskingProcessor.processLogResult(eventObject.getFormattedMessage());
             String maskedMessage = result.getDesensitizedMessage();
             String secureData = result.getSecureData();
+            String publicKeyFingerprint = result.getPublicKeyFingerprint();
 
             LoggingEvent maskedEvent = new LoggingEvent();
             maskedEvent.setLoggerName(eventObject.getLoggerName());
@@ -81,10 +87,13 @@ public class SecureMaskingAppender extends UnsynchronizedAppenderBase<ILoggingEv
             }
 
             if (mdcPropertyMap != null && !mdcPropertyMap.isEmpty()) {
-                maskedEvent.setMDCPropertyMap(appendSecureData(mdcPropertyMap, secureData));
+                maskedEvent.setMDCPropertyMap(appendSecureData(mdcPropertyMap, secureData, publicKeyFingerprint));
             } else if (secureData != null && !secureData.isEmpty()) {
                 Map<String, String> newMdc = new HashMap<>();
                 newMdc.put(this.secureDataKey, secureData);
+                if (publicKeyFingerprint != null && !publicKeyFingerprint.isEmpty()) {
+                    newMdc.put(this.publicKeyFingerprintKey, publicKeyFingerprint);
+                }
                 maskedEvent.setMDCPropertyMap(newMdc);
             }
 
@@ -98,14 +107,18 @@ public class SecureMaskingAppender extends UnsynchronizedAppenderBase<ILoggingEv
         }
     }
 
-    private Map<String, String> appendSecureData(Map<String, String> originalMdc, String secureData) {
-        Map<String, String> map = new HashMap<>(originalMdc.size() + 1);
+    private Map<String, String> appendSecureData(Map<String, String> originalMdc, String secureData, String publicKeyFingerprint) {
+        Map<String, String> map = new HashMap<>(originalMdc.size() + 2);
         map.putAll(originalMdc);
         boolean hasSecureData = secureData != null && !secureData.isEmpty();
         if (hasSecureData) {
             map.put(this.secureDataKey, secureData);
+            if (publicKeyFingerprint != null && !publicKeyFingerprint.isEmpty()) {
+                map.put(this.publicKeyFingerprintKey, publicKeyFingerprint);
+            }
         } else {
             map.remove(this.secureDataKey);
+            map.remove(this.publicKeyFingerprintKey);
         }
         return map;
     }

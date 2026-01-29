@@ -27,6 +27,8 @@ import java.util.Map;
  */
 public class LogMaskingProcessor {
     private final String secureDataKey;
+    private final String publicKeyFingerprintKey;
+    private final String publicKeyFingerprint;
     private final String[] traceIdKeys;
     private final StructuredMaskingEngine maskingEngine;
     private SecureDataBuilder secureDataBuilder;
@@ -34,10 +36,12 @@ public class LogMaskingProcessor {
     public static class ProcessResult {
         private final String desensitizedMessage;
         private final String secureData;
+        private final String publicKeyFingerprint;
 
-        public ProcessResult(String desensitizedMessage, String secureData) {
+        public ProcessResult(String desensitizedMessage, String secureData, String publicKeyFingerprint) {
             this.desensitizedMessage = desensitizedMessage;
             this.secureData = secureData;
+            this.publicKeyFingerprint = publicKeyFingerprint;
         }
 
         public String getDesensitizedMessage() {
@@ -46,6 +50,10 @@ public class LogMaskingProcessor {
 
         public String getSecureData() {
             return secureData;
+        }
+
+        public String getPublicKeyFingerprint() {
+            return publicKeyFingerprint;
         }
     }
 
@@ -62,6 +70,8 @@ public class LogMaskingProcessor {
     public LogMaskingProcessor() {
         ConfigManager config = ConfigManager.getInstance();
         this.secureDataKey = config.getProperty(ConfigConstants.MDC_SECURE_DATA_KEY, ConfigConstants.DEFAULT_MDC_SECURE_DATA_KEY);
+        this.publicKeyFingerprintKey = config.getProperty(ConfigConstants.MDC_PUB_KEY_FINGERPRINT, ConfigConstants.DEFAULT_MDC_PUB_KEY_FINGERPRINT);
+        this.publicKeyFingerprint = config.getPublicKeyFingerprint();
         this.traceIdKeys = splitKeys(config.getProperty(ConfigConstants.MDC_TRACE_ID_KEYS, ConfigConstants.DEFAULT_MDC_TRACE_ID_KEYS));
         this.maskingEngine = new StructuredMaskingEngine(new StructuredMaskingConfig(config));
         try {
@@ -75,8 +85,12 @@ public class LogMaskingProcessor {
         ProcessResult result = process(originalMessage);
         if (result.getSecureData() != null) {
             MDC.put(this.secureDataKey, result.getSecureData());
+            if (result.getPublicKeyFingerprint() != null) {
+                MDC.put(this.publicKeyFingerprintKey, result.getPublicKeyFingerprint());
+            }
         } else {
             MDC.remove(this.secureDataKey);
+            MDC.remove(this.publicKeyFingerprintKey);
         }
         return result.getDesensitizedMessage();
     }
@@ -90,6 +104,7 @@ public class LogMaskingProcessor {
      */
     public void clearSecureDataFromMdc() {
         MDC.remove(this.secureDataKey);
+        MDC.remove(this.publicKeyFingerprintKey);
     }
 
     /**
@@ -100,7 +115,7 @@ public class LogMaskingProcessor {
      */
     private ProcessResult process(String originalMessage) {
         if (originalMessage == null || originalMessage.isEmpty()) {
-            return new ProcessResult(originalMessage, null);
+            return new ProcessResult(originalMessage, null, null);
         }
 
         StructuredMaskingEngine.Result r = maskingEngine.mask(originalMessage);
@@ -109,7 +124,8 @@ public class LogMaskingProcessor {
         if (sensitiveDataJson != null && !sensitiveDataJson.isEmpty()) {
             secureData = buildSecureData(sensitiveDataJson, getTraceIdFromMdc());
         }
-        return new ProcessResult(r.getMasked(), secureData);
+        String fingerprint = (secureData == null || secureData.isEmpty()) ? null : publicKeyFingerprint;
+        return new ProcessResult(r.getMasked(), secureData, fingerprint);
     }
 
     private String buildSecureData(String sensitiveDataJson, String traceId) {

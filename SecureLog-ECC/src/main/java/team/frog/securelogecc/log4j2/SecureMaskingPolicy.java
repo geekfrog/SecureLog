@@ -31,6 +31,7 @@ import java.util.Map;
 public class SecureMaskingPolicy implements RewritePolicy {
     private final LogMaskingProcessor maskingProcessor = new LogMaskingProcessor();
     private volatile String secureDataKey;
+    private volatile String publicKeyFingerprintKey;
     private volatile String[] traceIdKeys;
 
     @PluginFactory
@@ -45,13 +46,18 @@ public class SecureMaskingPolicy implements RewritePolicy {
         }
 
         String key = secureDataKey;
-        if (key == null) {
-            key = ConfigManager.getInstance().getProperty(
+        if (key == null || publicKeyFingerprintKey == null) {
+            ConfigManager config = ConfigManager.getInstance();
+            key = config.getProperty(
                     ConfigConstants.MDC_SECURE_DATA_KEY,
                     ConfigConstants.DEFAULT_MDC_SECURE_DATA_KEY
             );
             secureDataKey = key;
-            String traceIdKeysConfig = ConfigManager.getInstance().getProperty(
+            publicKeyFingerprintKey = config.getProperty(
+                    ConfigConstants.MDC_PUB_KEY_FINGERPRINT,
+                    ConfigConstants.DEFAULT_MDC_PUB_KEY_FINGERPRINT
+            );
+            String traceIdKeysConfig = config.getProperty(
                     ConfigConstants.MDC_TRACE_ID_KEYS,
                     ConfigConstants.DEFAULT_MDC_TRACE_ID_KEYS
             );
@@ -68,6 +74,7 @@ public class SecureMaskingPolicy implements RewritePolicy {
         }
         String maskedMessage = result.getDesensitizedMessage();
         String secureData = result.getSecureData();
+        String publicKeyFingerprint = result.getPublicKeyFingerprint();
 
         Log4jLogEvent.Builder builder = new Log4jLogEvent.Builder(source);
         builder.setMessage(new SimpleMessage(maskedMessage));
@@ -76,12 +83,18 @@ public class SecureMaskingPolicy implements RewritePolicy {
         if (hasSecureData) {
             StringMap newContextData = new SortedArrayStringMap(source.getContextData());
             newContextData.putValue(key, secureData);
+            if (publicKeyFingerprint != null && !publicKeyFingerprint.isEmpty()) {
+                newContextData.putValue(publicKeyFingerprintKey, publicKeyFingerprint);
+            }
             builder.setContextData(newContextData);
         } else {
             Object existingSecure = contextData.getValue(key);
             if (existingSecure != null) {
                 StringMap newContextData = new SortedArrayStringMap(contextData);
                 newContextData.remove(key);
+                if (publicKeyFingerprintKey != null) {
+                    newContextData.remove(publicKeyFingerprintKey);
+                }
                 builder.setContextData(newContextData);
             }
         }

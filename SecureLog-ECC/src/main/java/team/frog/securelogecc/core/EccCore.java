@@ -6,7 +6,9 @@ import javax.crypto.Cipher;
 import java.security.KeyFactory;
 import java.security.PrivateKey;
 import java.security.PublicKey;
+import java.security.MessageDigest;
 import java.security.spec.X509EncodedKeySpec;
+import java.util.Arrays;
 import java.util.Base64;
 
 /**
@@ -105,6 +107,21 @@ public class EccCore {
             return keyFactory.generatePublic(keySpec);
         } catch (Exception e) {
             throw new Exception("公钥解码失败: " + e.getMessage(), e);
+        }
+    }
+
+    public static String publicKeyFingerprint(String base64PublicKey) {
+        if (base64PublicKey == null || base64PublicKey.trim().isEmpty()) {
+            return null;
+        }
+        try {
+            byte[] decoded = base64Decode(base64PublicKey.trim());
+            MessageDigest md = MessageDigest.getInstance("SHA-256");
+            byte[] digest = md.digest(decoded);
+            byte[] head = Arrays.copyOf(digest, Math.min(20, digest.length));
+            return base64Encode(head);
+        } catch (Exception e) {
+            return null;
         }
     }
 }
