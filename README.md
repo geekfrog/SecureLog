@@ -4,6 +4,8 @@ SecureLog ECC 是基于国密算法的日志安全组件，能够在保持原有
 
 本仓库包含组件本体（`SecureLog-ECC`）以及 Logback、Log4j2、Log4j1 bridge 的示例工程。
 
+> 💡 **AI 辅助开发说明**：本项目在开发过程中使用了 AI 辅助工具进行代码生成和优化，但所有核心算法和架构设计均由人工审核和验证确保正确性。
+
 ## 核心能力
 
 - **结构化优先脱敏**：支持 JSON、SQL 参数、URL query、querystring、key/value 等多种格式，纯文本作为兜底方案
