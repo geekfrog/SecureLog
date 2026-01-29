@@ -1,4 +1,4 @@
-# LogSecure / SecureLog ECC
+# SecureLog ECC
 
 SecureLog ECC 是基于国密算法的日志安全组件，能够在保持原有日志输出链路不变的前提下，对日志中的敏感信息进行"结构化优先脱敏"，并将原始敏感值加密为 `SECURE_DATA` 随日志一起落盘，便于后续审计回溯与离线解密。
 
