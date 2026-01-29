@@ -78,33 +78,14 @@ public class LogMaskingProcessor {
             this.secureDataBuilder = new SecureDataBuilder();
         } catch (Exception e) {
             this.secureDataBuilder = null;
+            System.out.println("【SecureLog-ECC】ERROR!!! " + e.getMessage());
+            System.out.println("\033[41;97m【SecureLog-ECC】ERROR!!! " + e.getMessage() + "\033[0m");
+            e.printStackTrace();
         }
-    }
-
-    public String processLog(String originalMessage) {
-        ProcessResult result = process(originalMessage);
-        if (result.getSecureData() != null) {
-            MDC.put(this.secureDataKey, result.getSecureData());
-            if (result.getPublicKeyFingerprint() != null) {
-                MDC.put(this.publicKeyFingerprintKey, result.getPublicKeyFingerprint());
-            }
-        } else {
-            MDC.remove(this.secureDataKey);
-            MDC.remove(this.publicKeyFingerprintKey);
-        }
-        return result.getDesensitizedMessage();
     }
 
     public ProcessResult processLogResult(String originalMessage) {
         return process(originalMessage);
-    }
-
-    /**
-     * 清理 MDC 中存放的 SECURE_DATA。
-     */
-    public void clearSecureDataFromMdc() {
-        MDC.remove(this.secureDataKey);
-        MDC.remove(this.publicKeyFingerprintKey);
     }
 
     /**
