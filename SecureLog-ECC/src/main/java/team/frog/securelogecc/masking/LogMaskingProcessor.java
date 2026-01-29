@@ -76,6 +76,8 @@ public class LogMaskingProcessor {
         this.maskingEngine = new StructuredMaskingEngine(new StructuredMaskingConfig(config));
         try {
             this.secureDataBuilder = new SecureDataBuilder();
+            System.out.println("【SecureLog-ECC】脱敏处理器创建成功！");
+            System.out.println("\033[32m【SecureLog-ECC】脱敏处理器创建成功！\033[0m");
         } catch (Exception e) {
             this.secureDataBuilder = null;
             System.out.println("【SecureLog-ECC】ERROR!!! " + e.getMessage());

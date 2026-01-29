@@ -57,19 +57,6 @@ public class ConfigManager {
         // 清除并重新加载
         properties.clear();
 
-        // 尝试从类路径加载
-        try (InputStream is = getClass().getClassLoader().getResourceAsStream(configFile)) {
-            if (is != null) {
-                properties.load(new InputStreamReader(is, StandardCharsets.UTF_8));
-                // 恢复之前设置的属性（这些属性优先级更高）
-                properties.putAll(currentProperties);
-                initialized = true;
-                cachedPublicKeyBase64 = null;
-                cachedPublicKeyFingerprint = null;
-                return;
-            }
-        }
-
         // 尝试从文件系统加载
         try {
             try (FileInputStream fis = new FileInputStream(configFile)) {
@@ -83,6 +70,19 @@ public class ConfigManager {
             }
         } catch (FileNotFoundException e) {
             // 文件不存在，继续使用默认值
+        }
+
+        // 尝试从类路径加载
+        try (InputStream is = getClass().getClassLoader().getResourceAsStream(configFile)) {
+            if (is != null) {
+                properties.load(new InputStreamReader(is, StandardCharsets.UTF_8));
+                // 恢复之前设置的属性（这些属性优先级更高）
+                properties.putAll(currentProperties);
+                initialized = true;
+                cachedPublicKeyBase64 = null;
+                cachedPublicKeyFingerprint = null;
+                return;
+            }
         }
 
         // 如果没有找到配置文件，使用默认值
