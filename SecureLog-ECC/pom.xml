@@ -10,7 +10,36 @@
     <packaging>jar</packaging>
 
     <name>SecureLog ECC</name>
-    <description>ECC-based log security enhancement component</description>
+    <description>SecureLog ECC 是一个基于国密算法的日志加密组件，为业务系统提供敏感数据加密保护。该组件采用双轨密钥管理系统，支持基于trace_id的会话密钥和系统级密钥两种加密策略。</description>
+    <url>https://gitee.com/geekfrog/securelog</url>
+
+    <!-- 许可证 -->
+    <licenses>
+        <license>
+            <name>MIT License</name>
+            <url>http://www.opensource.org/licenses/mit-license.php</url>
+            <distribution>repo</distribution>
+            <comments>A permissive license that is short and to the point.</comments>
+        </license>
+    </licenses>
+
+    <!-- 开发者信息 -->
+    <developers>
+        <developer>
+            <name>宅宅蛙(GeekFrog)</name>
+            <email>geekfrog@frog.team</email>
+            <organization>GeekFrog</organization>
+            <timezone>+8</timezone>
+        </developer>
+    </developers>
+
+    <!-- SCM信息 -->
+    <scm>
+        <connection>scm:git:https://gitee.com/geekfrog/securelog.git</connection>
+        <developerConnection>scm:git:https://gitee.com/geekfrog/securelog.git</developerConnection>
+        <url>https://gitee.com/geekfrog/securelog</url>
+        <tag>HEAD</tag>
+    </scm>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -54,10 +83,60 @@
                     <execution>
                         <id>attach-sources</id>
                         <goals>
-                            <goal>jar</goal>
+                            <goal>jar-no-fork</goal>
                         </goals>
                     </execution>
                 </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>3.5.0</version>
+                <executions>
+                    <execution>
+                        <id>attach-javadocs</id>
+                        <goals><goal>jar</goal></goals>
+                        <configuration>
+                            <!-- 忽略所有HTML检查 -->
+                            <doclint>none</doclint>
+                            
+                            <!-- 其他配置 -->
+                            <charset>UTF-8</charset>
+                            <encoding>UTF-8</encoding>
+                            <docencoding>UTF-8</docencoding>
+                            <show>public</show>
+                            
+                            <!-- 如果是Java 8+，还需要添加 -->
+                            <source>8</source>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            
+            <!-- GPG签名 -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-gpg-plugin</artifactId>
+                <version>3.0.1</version>
+                <executions>
+                    <execution>
+                        <id>sign-artifacts</id>
+                        <phase>verify</phase>
+                        <goals><goal>sign</goal></goals>
+                    </execution>
+                </executions>
+            </plugin>
+            
+            <plugin>
+                <groupId>org.sonatype.central</groupId>
+                <artifactId>central-publishing-maven-plugin</artifactId>
+                <version>0.9.0</version>
+                <extensions>true</extensions>
+                <configuration>
+                    <publishingServerId>sonatype-central</publishingServerId>
+                    <autoPublish>true</autoPublish>
+                    <waitUntil>published</waitUntil>
+                </configuration>
             </plugin>
         </plugins>
     </build>
