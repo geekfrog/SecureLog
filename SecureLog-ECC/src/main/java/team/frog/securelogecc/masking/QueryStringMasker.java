@@ -3,6 +3,24 @@ package team.frog.securelogecc.masking;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * querystring 脱敏器。
+ *
+ * <p>支持两类场景：
+ * <ul>
+ *   <li>整条文本本身就是 querystring（形如 {@code a=b&c=d}）</li>
+ *   <li>文本中包含 URL 查询串（形如 {@code /path?a=b&c=d#...}）</li>
+ * </ul>
+ * </p>
+ *
+ * <p>脱敏策略：
+ * <ul>
+ *   <li>优先按 key 命中：敏感 key 直接脱敏并提取原值</li>
+ *   <li>其次按值形态：身份证/手机号/邮箱/严格地址</li>
+ *   <li>对高熵 token 仅在 token-like key 命中时触发（降低误报）</li>
+ * </ul>
+ * </p>
+ */
 public class QueryStringMasker {
     private final StructuredMaskingConfig config;
     private final MaskingRules rules;

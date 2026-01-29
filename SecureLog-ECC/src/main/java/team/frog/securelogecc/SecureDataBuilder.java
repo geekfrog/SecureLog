@@ -13,8 +13,29 @@ import javax.crypto.spec.IvParameterSpec;
 import java.security.SecureRandom;
 
 /**
- * 安全数据构建器类
- * 构建SECURE_DATA字段，包含ECC加密的密钥和密钥加密的敏感数据
+ * SECURE_DATA 构建器。
+ *
+ * <p>职责：
+ * <ul>
+ *   <li>通过 {@link KeyManager} 获取或生成 SM4 会话密钥/系统密钥</li>
+ *   <li>使用 SM2 公钥加密 SM4 密钥（形成密钥密文）</li>
+ *   <li>使用配置的 SM4 算法（默认 GCM）加密敏感数据 JSON</li>
+ *   <li>按固定二进制结构拼装并 Base64 输出 SECURE_DATA</li>
+ * </ul>
+ * </p>
+ *
+ * <p>SECURE_DATA（Base64 解码后的字节结构）：
+ * <pre>
+ * [version(1)][sm2KeyLen(4)][ivLen(1)][sm2EncryptedKey][iv][sm4Ciphertext]
+ * </pre>
+ * </p>
+ *
+ * <p>性能：
+ * <ul>
+ *   <li>SM4 Cipher 使用 ThreadLocal 缓存，减少对象创建与 provider 查找开销</li>
+ *   <li>IV/nonce 由线程本地 {@link SecureRandom} 生成</li>
+ * </ul>
+ * </p>
  */
 public class SecureDataBuilder {
 

@@ -13,6 +13,25 @@ import java.security.KeyFactory;
 import java.security.PrivateKey;
 import java.security.spec.PKCS8EncodedKeySpec;
 
+/**
+ * SECURE_DATA 解密工具类。
+ *
+ * <p>用于离线排障或审计回溯：将日志中落盘的 SECURE_DATA（Base64）解出明文敏感数据 JSON。</p>
+ *
+ * <p>解密流程：
+ * <ol>
+ *   <li>Base64 解码 SECURE_DATA 并按固定结构解析 header</li>
+ *   <li>使用 SM2 私钥解出 SM4 对称密钥（密钥封装部分）</li>
+ *   <li>使用配置的 SM4 transformation（默认 GCM）解密敏感数据密文</li>
+ * </ol>
+ * </p>
+ *
+ * <p>SECURE_DATA v2（Base64 解码后的字节结构）：
+ * <pre>
+ * [version(1)][sm2KeyLen(4)][ivLen(1)][sm2EncryptedKey][iv][sm4Ciphertext]
+ * </pre>
+ * </p>
+ */
 public final class SecureDataDecrypter {
     private static final String EC_ALGORITHM = "EC";
     private static final String SM4_ALGORITHM = "SM4";

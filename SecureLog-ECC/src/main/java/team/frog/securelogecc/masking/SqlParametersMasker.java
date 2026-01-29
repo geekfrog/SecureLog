@@ -3,6 +3,20 @@ package team.frog.securelogecc.masking;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * SQL Parameters 日志脱敏器。
+ *
+ * <p>面向 MyBatis 等框架的参数输出格式，识别形如：
+ * {@code "... Parameters: v1(String), v2(Integer), ..."}。</p>
+ *
+ * <p>策略：
+ * <ul>
+ *   <li>仅处理标注为 {@code (String)} 的参数值</li>
+ *   <li>对 String 值按形态规则脱敏（身份证/手机号/邮箱/严格地址），否则使用通用掩码</li>
+ *   <li>将原值写入 {@link SensitiveDataCollector}，用于构建 SECURE_DATA</li>
+ * </ul>
+ * </p>
+ */
 public class SqlParametersMasker {
     private final MaskingRules rules;
 

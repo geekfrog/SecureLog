@@ -17,6 +17,16 @@ import team.frog.securelogecc.masking.LogMaskingProcessor;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Log4j2 场景的日志脱敏 + 敏感数据加密 RewritePolicy。
+ *
+ * <p>该策略通常配合 Log4j2 的 RewriteAppender 使用：对原始 {@link LogEvent} 的 message 做脱敏，
+ * 并在命中敏感值时向 contextData 写入 SECURE_DATA（默认 key 为 {@code SECURE_DATA}）。</p>
+ *
+ * <p>traceId 绑定：
+ * 支持从事件 contextData 中读取多个 traceId key（见 {@link ConfigConstants#MDC_TRACE_ID_KEYS}），在处理期间写入 SLF4J MDC，
+ * 使加密侧可基于 traceId 生成/复用会话密钥；处理结束后恢复原 MDC，避免污染调用线程的上下文。</p>
+ */
 @Plugin(name = "SecureMaskingPolicy", category = "Core", elementType = "rewritePolicy", printObject = true)
 public class SecureMaskingPolicy implements RewritePolicy {
     private final LogMaskingProcessor maskingProcessor = new LogMaskingProcessor();

@@ -6,6 +6,23 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/**
+ * 纯文本兜底脱敏器。
+ *
+ * <p>当结构化解析（JSON / querystring / key-value / SQL Parameters）未命中或不适用时，
+ * 该组件会对文本进行有限范围的正则扫描，用于覆盖常见的个人敏感信息。</p>
+ *
+ * <p>默认覆盖范围：
+ * <ul>
+ *   <li>身份证</li>
+ *   <li>手机号</li>
+ *   <li>邮箱</li>
+ *   <li>严格地址（通过 region/detail 两阶段关键字约束，降低误报）</li>
+ * </ul>
+ * </p>
+ *
+ * <p>注意：兜底阶段不会做高熵 token 裸扫，以降低误报与性能开销。</p>
+ */
 public class PlainTextFallbackMasker {
     private final StructuredMaskingConfig config;
     private final MaskingRules rules;

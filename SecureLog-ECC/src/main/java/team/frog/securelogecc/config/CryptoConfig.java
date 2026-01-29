@@ -5,6 +5,19 @@ import team.frog.securelogecc.manager.ConfigManager;
 import java.security.Provider;
 import java.security.Security;
 
+/**
+ * 密码学 Provider 与算法配置读取入口。
+ *
+ * <p>职责：
+ * <ul>
+ *   <li>从 {@code securelog-ecc.properties} 读取并解析 JCE Provider（默认 BouncyCastle）</li>
+ *   <li>按需注册 Provider 到 JCE，并缓存 providerName，避免重复加载</li>
+ *   <li>暴露 SM2/SM4 的 transformation、曲线名等配置读取方法</li>
+ * </ul>
+ * </p>
+ *
+ * <p>该类为纯静态工具类，首次调用会触发 Provider 的加载与注册（若未注册）。</p>
+ */
 public final class CryptoConfig {
     private static volatile String cachedProviderConfig;
     private static volatile String cachedProviderName;

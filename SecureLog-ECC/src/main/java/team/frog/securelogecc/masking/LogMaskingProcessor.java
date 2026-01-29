@@ -7,6 +7,24 @@ import team.frog.securelogecc.manager.ConfigManager;
 
 import java.util.Map;
 
+/**
+ * 组件对外的日志脱敏处理器（可直接在业务代码中调用）。
+ *
+ * <p>职责：
+ * <ul>
+ *   <li>读取配置并构建结构化优先脱敏引擎</li>
+ *   <li>执行脱敏并提取原始敏感值</li>
+ *   <li>将敏感值 JSON 加密为 SECURE_DATA，并写入 MDC（可配置 key）</li>
+ * </ul>
+ * </p>
+ *
+ * <p>说明：
+ * <ul>
+ *   <li>脱敏输出尽量保持原日志文本格式，仅替换命中 value</li>
+ *   <li>SECURE_DATA 仅在命中敏感值且加密成功时生成；失败会降级为“不写入”</li>
+ * </ul>
+ * </p>
+ */
 public class LogMaskingProcessor {
     private final String secureDataKey;
     private final String[] traceIdKeys;

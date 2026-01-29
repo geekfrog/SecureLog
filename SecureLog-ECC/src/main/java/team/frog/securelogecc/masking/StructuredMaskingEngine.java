@@ -2,6 +2,22 @@ package team.frog.securelogecc.masking;
 
 import java.util.Map;
 
+/**
+ * 结构化优先的日志脱敏引擎。
+ *
+ * <p>该引擎负责在“尽量不破坏原日志格式”的前提下脱敏敏感信息，并提取原始敏感值供加密写入 SECURE_DATA。</p>
+ *
+ * <p>处理顺序：
+ * <ol>
+ *   <li>JSON：支持嵌套对象/数组路径；字符串值中可递归处理嵌套 JSON、以及 querystring</li>
+ *   <li>SQL Parameters：识别形如 "Parameters:" 的参数列表，优先处理 String 值</li>
+ *   <li>URL query：对文本中出现的 "?a=b&c=d" 片段做脱敏</li>
+ *   <li>纯 querystring：对整条文本形如 "a=b&c=d" 的情况做逐项脱敏</li>
+ *   <li>key/value：识别 "key=value"、"key: value" 等片段并按敏感 key 脱敏</li>
+ *   <li>纯文本兜底：仅扫描身份证/手机号/邮箱/严格地址</li>
+ * </ol>
+ * </p>
+ */
 public class StructuredMaskingEngine {
     /**
      * 结构化优先脱敏引擎的输出结果。

@@ -4,6 +4,20 @@ import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/**
+ * key/value 片段脱敏器。
+ *
+ * <p>用于处理非 JSON 的普通日志文本中出现的键值对片段，例如：
+ * {@code password=xxx}、{@code token: abc}、{@code mobile：13800138000}。</p>
+ *
+ * <p>策略：
+ * <ul>
+ *   <li>通过正则在整段文本中查找 key-value 形态</li>
+ *   <li>仅当 key 命中敏感 key（或隐式敏感 key，如 password/pwd/pass）时才替换</li>
+ *   <li>替换前将原值写入 {@link SensitiveDataCollector}，用于构建 SECURE_DATA</li>
+ * </ul>
+ * </p>
+ */
 public class KeyValuePairsMasker {
     private final StructuredMaskingConfig config;
     private final MaskingRules rules;
@@ -107,4 +121,3 @@ public class KeyValuePairsMasker {
         return -1;
     }
 }
-

@@ -4,6 +4,19 @@ import java.util.Locale;
 import java.util.Set;
 import java.util.regex.Pattern;
 
+/**
+ * 脱敏规则与识别逻辑集合。
+ *
+ * <p>职责：
+ * <ul>
+ *   <li>按“值形态”识别：身份证、手机号/座机、邮箱、严格地址</li>
+ *   <li>按“高熵特征”识别 token（结合 token-like key 降低误报）</li>
+ *   <li>提供各类掩码方法（身份证/手机号/邮箱/地址/密码/token 等）</li>
+ * </ul>
+ * </p>
+ *
+ * <p>说明：识别与掩码策略会受 {@link StructuredMaskingConfig} 中的长度阈值、开关与关键字集合影响。</p>
+ */
 public class MaskingRules {
     private final StructuredMaskingConfig config;
 

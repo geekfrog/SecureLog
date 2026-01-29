@@ -8,6 +8,21 @@ import java.util.HashSet;
 import java.util.Locale;
 import java.util.Set;
 
+/**
+ * 结构化脱敏配置快照。
+ *
+ * <p>该类会在构造时从 {@link ConfigManager} 读取配置，并将其解析为便于运行时判断的集合与阈值，
+ * 避免在每条日志处理过程中重复解析字符串配置。</p>
+ *
+ * <p>主要配置项：
+ * <ul>
+ *   <li>敏感 key 列表（强敏感）：命中即脱敏并提取原值</li>
+ *   <li>token-like key 列表：用于限定“高熵 token”识别的触发范围</li>
+ *   <li>querystring/兜底开关、地址两阶段识别关键字与开关</li>
+ *   <li>token 掩码保留前后缀长度、最大 value 长度、高熵阈值等</li>
+ * </ul>
+ * </p>
+ */
 public class StructuredMaskingConfig {
     private final Set<String> sensitiveKeys;
     private final Set<String> tokenLikeKeys;

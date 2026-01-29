@@ -10,8 +10,17 @@ import java.security.spec.X509EncodedKeySpec;
 import java.util.Base64;
 
 /**
- * ECC核心类
- * 实现ECC加密和解密功能
+ * 密码学基础工具类。
+ *
+ * <p>封装本组件对 JCE 的最小依赖：
+ * <ul>
+ *   <li>SM2：用于加/解密 SM4 对称密钥（混合加密的“密钥封装”部分）</li>
+ *   <li>Base64：用于 SECURE_DATA 的编码/解码</li>
+ *   <li>公钥解码：从 X509 Base64 解出 {@link PublicKey}</li>
+ * </ul>
+ * </p>
+ *
+ * <p>所有 JCE 操作通过 {@link CryptoConfig} 解析并加载 Provider。</p>
  */
 public class EccCore {
 

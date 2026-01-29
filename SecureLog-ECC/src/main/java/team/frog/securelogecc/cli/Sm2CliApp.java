@@ -20,6 +20,24 @@ import java.security.spec.ECGenParameterSpec;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+/**
+ * SM2 工具类的命令行交互入口。
+ *
+ * <p>提供两类能力：
+ * <ul>
+ *   <li>生成 SM2 密钥对：输出并落盘保存公钥/私钥（Base64）</li>
+ *   <li>解密 SECURE_DATA：输入私钥与 SECURE_DATA（Base64），输出明文并追加写入文件</li>
+ * </ul>
+ * </p>
+ *
+ * <p>说明：
+ * <ul>
+ *   <li>该类不包含 main 方法，接入方可自行创建入口调用 {@link #runCli()}</li>
+ *   <li>依赖 JCE Provider（例如 BouncyCastle），通过 {@link CryptoConfig} 按配置加载</li>
+ *   <li>生成的私钥为 PKCS8 编码的 Base64，公钥为 X509 编码的 Base64</li>
+ * </ul>
+ * </p>
+ */
 public class Sm2CliApp {
     private static final String DECRYPT_OUTPUT_FILE = "sm2_decrypt_output.txt";
 

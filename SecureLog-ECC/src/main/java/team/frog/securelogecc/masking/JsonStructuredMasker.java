@@ -7,6 +7,21 @@ import com.fasterxml.jackson.core.JsonToken;
 
 import java.util.*;
 
+/**
+ * JSON 结构化脱敏器。
+ *
+ * <p>使用 Jackson streaming API 解析整段 JSON，并仅对命中的字符串 value 做替换，
+ * 尽量保持原 JSON 结构与字段顺序不变。</p>
+ *
+ * <p>能力点：
+ * <ul>
+ *   <li>按字段名（key）与值形态（身份证/手机号/邮箱/严格地址）脱敏，并提取原始敏感值</li>
+ *   <li>对 token-like key 下的高熵 token 做掩码，降低误报</li>
+ *   <li>对字符串 value 里的 querystring 做逐项脱敏</li>
+ *   <li>对字符串 value 中嵌套的 JSON 做有限层级递归处理（默认最多 2 层）</li>
+ * </ul>
+ * </p>
+ */
 public class JsonStructuredMasker {
     /**
      * JSON 脱敏结果（脱敏后的 JSON 字符串）。

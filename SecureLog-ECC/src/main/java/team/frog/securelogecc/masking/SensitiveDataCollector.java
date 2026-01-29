@@ -4,6 +4,19 @@ import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;
 
+/**
+ * 敏感值提取收集器。
+ *
+ * <p>用于在脱敏过程中记录“原始敏感值”，最终以 key-value Map 形式输出，
+ * 供 {@code SecureDataBuilder} 加密并写入 SECURE_DATA。</p>
+ *
+ * <p>规则：
+ * <ul>
+ *   <li>按插入顺序保存（LinkedHashMap），便于审计回溯</li>
+ *   <li>key 规范化为小写、去空白；重复 key 自动追加数字后缀避免覆盖</li>
+ * </ul>
+ * </p>
+ */
 public class SensitiveDataCollector {
     private final Map<String, String> data = new LinkedHashMap<>();
 

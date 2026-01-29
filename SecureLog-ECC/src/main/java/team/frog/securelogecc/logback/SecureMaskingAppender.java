@@ -17,6 +17,21 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
+/**
+ * Logback 场景的日志脱敏 + 敏感数据加密 Appender。
+ *
+ * <p>核心职责：
+ * <ul>
+ *   <li>对日志 message 做结构化优先脱敏（JSON / querystring / SQL Parameters / key-value / 纯文本兜底）</li>
+ *   <li>将命中的“原始敏感值”加密为 SECURE_DATA，并写入 MDC（默认 key 为 {@code SECURE_DATA}）</li>
+ *   <li>透传原日志事件的关键信息（loggerName、level、marker、callerData、throwable 等）并转发到下游真实 Appender</li>
+ * </ul>
+ * </p>
+ *
+ * <p>traceId 绑定：
+ * 组件可配置多个 traceId key（见 {@link ConfigConstants#MDC_TRACE_ID_KEYS}），Appender 会在处理期间将事件中的 traceId
+ * 写入当前线程 MDC，使加密侧可基于 traceId 生成/复用会话密钥；处理结束后恢复原 MDC，避免污染业务线程上下文。</p>
+ */
 public class SecureMaskingAppender extends UnsynchronizedAppenderBase<ILoggingEvent> implements AppenderAttachable<ILoggingEvent> {
     private final AppenderAttachableImpl<ILoggingEvent> aai = new AppenderAttachableImpl<>();
     private final LogMaskingProcessor maskingProcessor = new LogMaskingProcessor();
