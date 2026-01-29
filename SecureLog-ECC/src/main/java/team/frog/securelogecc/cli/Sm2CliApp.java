@@ -68,26 +68,26 @@ public class Sm2CliApp {
     private void handleGenerate(BufferedReader reader) throws Exception {
         KeyPair keyPair = generateSm2KeyPair();
         String publicKeyBase64 = EccCore.base64Encode(keyPair.getPublic().getEncoded());
+        String publicKeyFingerprint = EccCore.publicKeyFingerprint(publicKeyBase64);
         String privateKeyBase64 = EccCore.base64Encode(keyPair.getPrivate().getEncoded());
 
         String timestamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
-        Path publicKeyPath = Paths.get("sm2_public_key_" + timestamp + ".txt");
-        Path privateKeyPath = Paths.get("sm2_private_key_" + timestamp + ".txt");
+        Path keyInfoPath = Paths.get("sm2_key_info_" + timestamp + ".txt");
 
-        writeString(publicKeyPath, publicKeyBase64);
-        writeString(privateKeyPath, privateKeyBase64);
+        String keyInfo = "公钥（Base64）:" + publicKeyBase64 + "\n" +
+                "公钥摘要: " + publicKeyFingerprint + "\n" +
+                "私钥（Base64）:" + privateKeyBase64 + "\n\n";
+        writeString(keyInfoPath, keyInfo);
 
         System.out.println("公钥（Base64）:");
         System.out.println(publicKeyBase64);
-        String publicKeyFingerprint = EccCore.publicKeyFingerprint(publicKeyBase64);
         if (publicKeyFingerprint != null) {
             System.out.println("公钥摘要: " + publicKeyFingerprint);
         }
         System.out.println("私钥（Base64）:");
         System.out.println(privateKeyBase64);
-        System.out.println("密钥已保存到文件：");
-        System.out.println(publicKeyPath.toAbsolutePath());
-        System.out.println(privateKeyPath.toAbsolutePath());
+        System.out.println("密钥信息已保存到文件：");
+        System.out.println(keyInfoPath.toAbsolutePath());
         System.out.println("请妥善保存，避免泄露。");
     }
 
