@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2026 宅宅蛙(GeekFrog)
+ * SPDX-License-Identifier: MIT
+ */
 package team.frog.securelogecc;
 
 import team.frog.securelogecc.config.CryptoConfig;
@@ -33,10 +37,15 @@ import java.security.spec.PKCS8EncodedKeySpec;
  * </p>
  */
 public final class SecureDataDecrypter {
+    /** ECC 私钥算法标识 */
     private static final String EC_ALGORITHM = "EC";
+    /** SM4 对称密钥算法标识 */
     private static final String SM4_ALGORITHM = "SM4";
+    /** SECURE_DATA 版本号 */
     private static final int SECURE_DATA_VERSION = 2;
+    /** GCM 模式认证标签长度（比特） */
     private static final int GCM_TAG_LENGTH_BITS = 128;
+    /** 线程本地 SM4 解密 Cipher */
     private static final ThreadLocal<Cipher> SM4_DECRYPT_CIPHER = ThreadLocal.withInitial(() -> {
         try {
             CryptoConfig.ensureProviderAvailable();
@@ -49,6 +58,14 @@ public final class SecureDataDecrypter {
     private SecureDataDecrypter() {
     }
 
+    /**
+     * 解密 SECURE_DATA（Base64）。
+     *
+     * @param secureData SECURE_DATA Base64 字符串
+     * @param privateKey ECC 私钥
+     * @return 解密后的敏感数据 JSON
+     * @throws Exception 解密失败时抛出
+     */
     public static String decryptSecureData(String secureData, PrivateKey privateKey) throws Exception {
         if (secureData == null || secureData.trim().isEmpty()) {
             throw new IllegalArgumentException("SECURE_DATA 不能为空");
@@ -114,10 +131,25 @@ public final class SecureDataDecrypter {
         }
     }
 
+    /**
+     * 解密 SECURE_DATA（Base64）。
+     *
+     * @param secureData SECURE_DATA Base64 字符串
+     * @param base64Pkcs8PrivateKey PKCS8 Base64 私钥
+     * @return 解密后的敏感数据 JSON
+     * @throws Exception 解密失败时抛出
+     */
     public static String decryptSecureData(String secureData, String base64Pkcs8PrivateKey) throws Exception {
         return decryptSecureData(secureData, decodePrivateKey(base64Pkcs8PrivateKey));
     }
 
+    /**
+     * 解码 PKCS8 Base64 私钥。
+     *
+     * @param base64Pkcs8PrivateKey PKCS8 Base64 私钥
+     * @return ECC 私钥对象
+     * @throws Exception 解码失败时抛出
+     */
     public static PrivateKey decodePrivateKey(String base64Pkcs8PrivateKey) throws Exception {
         if (base64Pkcs8PrivateKey == null || base64Pkcs8PrivateKey.trim().isEmpty()) {
             throw new IllegalArgumentException("ECC 私钥不能为空");

@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2026 宅宅蛙(GeekFrog)
+ * SPDX-License-Identifier: MIT
+ */
 package team.frog.securelogecc.masking;
 
 import java.util.Locale;

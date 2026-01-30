@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2026 宅宅蛙(GeekFrog)
+ * SPDX-License-Identifier: MIT
+ */
 package team.frog.securelogecc.logback;
 
 import ch.qos.logback.classic.spi.ILoggingEvent;
@@ -39,6 +43,9 @@ public class SecureMaskingAppender extends UnsynchronizedAppenderBase<ILoggingEv
     private volatile String publicKeyFingerprintKey = ConfigConstants.DEFAULT_MDC_PUB_KEY_FINGERPRINT;
     private volatile String[] traceIdKeys;
 
+    /**
+     * 初始化配置并启动 Appender。
+     */
     @Override
     public void start() {
         this.secureDataKey = ConfigManager.getInstance().getProperty(
@@ -180,36 +187,73 @@ public class SecureMaskingAppender extends UnsynchronizedAppenderBase<ILoggingEv
         return keysConfig.split("\\s*,\\s*");
     }
 
+    /**
+     * 添加下游 Appender。
+     *
+     * @param newAppender 下游 Appender
+     */
     @Override
     public void addAppender(Appender<ILoggingEvent> newAppender) {
         aai.addAppender(newAppender);
     }
 
+    /**
+     * 获取已挂载 Appender 的迭代器。
+     *
+     * @return Appender 迭代器
+     */
     @Override
     public Iterator<Appender<ILoggingEvent>> iteratorForAppenders() {
         return aai.iteratorForAppenders();
     }
 
+    /**
+     * 按名称获取 Appender。
+     *
+     * @param name Appender 名称
+     * @return Appender 实例
+     */
     @Override
     public Appender<ILoggingEvent> getAppender(String name) {
         return aai.getAppender(name);
     }
 
+    /**
+     * 判断 Appender 是否已挂载。
+     *
+     * @param appender Appender 实例
+     * @return 是否已挂载
+     */
     @Override
     public boolean isAttached(Appender<ILoggingEvent> appender) {
         return aai.isAttached(appender);
     }
 
+    /**
+     * 解除并停止所有 Appender。
+     */
     @Override
     public void detachAndStopAllAppenders() {
         aai.detachAndStopAllAppenders();
     }
 
+    /**
+     * 按实例解除 Appender。
+     *
+     * @param appender Appender 实例
+     * @return 是否成功移除
+     */
     @Override
     public boolean detachAppender(Appender<ILoggingEvent> appender) {
         return aai.detachAppender(appender);
     }
 
+    /**
+     * 按名称解除 Appender。
+     *
+     * @param name Appender 名称
+     * @return 是否成功移除
+     */
     @Override
     public boolean detachAppender(String name) {
         return aai.detachAppender(name);

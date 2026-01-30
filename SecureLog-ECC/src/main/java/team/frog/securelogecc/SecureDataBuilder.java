@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2026 宅宅蛙(GeekFrog)
+ * SPDX-License-Identifier: MIT
+ */
 package team.frog.securelogecc;
 
 import team.frog.securelogecc.config.ConfigConstants;
@@ -39,11 +43,17 @@ import java.security.SecureRandom;
  */
 public class SecureDataBuilder {
 
+    /** 密钥管理器（负责会话密钥/系统密钥缓存） */
     private final KeyManager keyManager;
+    /** SECURE_DATA 版本号（用于兼容解析） */
     private static final byte SECURE_DATA_VERSION = 2;
+    /** GCM 模式 IV 长度（字节） */
     private static final int GCM_IV_LENGTH_BYTES = 12;
+    /** GCM 模式认证标签长度（比特） */
     private static final int GCM_TAG_LENGTH_BITS = 128;
+    /** 线程本地随机数生成器 */
     private static final ThreadLocal<SecureRandom> SECURE_RANDOM = ThreadLocal.withInitial(SecureRandom::new);
+    /** 线程本地 SM4 加密 Cipher */
     private static final ThreadLocal<Cipher> SM4_ENCRYPT_CIPHER = ThreadLocal.withInitial(() -> {
         try {
             CryptoConfig.ensureProviderAvailable();
@@ -52,6 +62,7 @@ public class SecureDataBuilder {
             throw new RuntimeException(e);
         }
     });
+    /** 线程本地 SM4 解密 Cipher */
     private static final ThreadLocal<Cipher> SM4_DECRYPT_CIPHER = ThreadLocal.withInitial(() -> {
         try {
             CryptoConfig.ensureProviderAvailable();
@@ -88,14 +99,14 @@ public class SecureDataBuilder {
      * @throws Exception 如果加密失败
      */
     public String buildSecureDataForBusinessLog(String sensitiveData, String traceId) throws Exception {
-        // 一次性获取KeyInfo对象，避免原子性问题
+        /** 一次性获取KeyInfo对象，避免原子性问题 */
         KeyManager.KeyInfo keyInfo = keyManager.getOrCreateSessionKeyInfo(traceId);
 
-        // 使用同一个KeyInfo对象获取SM4密钥和SM2密文
+        /** 使用同一个KeyInfo对象获取SM4密钥和SM2密文 */
         SecretKey sessionKey = keyInfo.getSm4Key();
         byte[] encryptedKey = keyInfo.getSm2EncryptedKey();
 
-        // 使用会话密钥加密敏感数据
+        /** 使用会话密钥加密敏感数据 */
         Sm4EncryptedPayload encryptedPayload = encryptWithSymmetricKey(sensitiveData.getBytes("UTF-8"), sessionKey);
 
         return buildSecureData(encryptedKey, encryptedPayload.iv, encryptedPayload.ciphertext);
@@ -110,17 +121,17 @@ public class SecureDataBuilder {
      * @throws Exception 如果加密失败
      */
     public String buildSecureDataForSystemLog(String sensitiveData) throws Exception {
-        // 生成系统级标识符（按配置间隔变化）
+        /** 生成系统级标识符（按配置间隔变化） */
         String systemTraceId = generateSystemTraceId();
 
-        // 使用系统级标识符获取KeyInfo对象，系统级使用独立的缓存
+        /** 使用系统级标识符获取KeyInfo对象，系统级使用独立的缓存 */
         KeyManager.KeyInfo keyInfo = keyManager.getOrCreateSystemKeyInfo(systemTraceId);
 
-        // 使用同一个KeyInfo对象获取SM4密钥和SM2密文
+        /** 使用同一个KeyInfo对象获取SM4密钥和SM2密文 */
         SecretKey systemKey = keyInfo.getSm4Key();
         byte[] encryptedKey = keyInfo.getSm2EncryptedKey();
 
-        // 使用系统级密钥加密敏感数据
+        /** 使用系统级密钥加密敏感数据 */
         Sm4EncryptedPayload encryptedPayload = encryptWithSymmetricKey(sensitiveData.getBytes("UTF-8"), systemKey);
 
         return buildSecureData(encryptedKey, encryptedPayload.iv, encryptedPayload.ciphertext);
@@ -136,12 +147,12 @@ public class SecureDataBuilder {
      */
     private String generateSystemTraceId() {
         long currentTime = System.currentTimeMillis();
-        // 从配置读取系统标识符变化间隔（分钟）
+        /** 从配置读取系统标识符变化间隔（分钟） */
         int systemIdChangeIntervalMinutes = ConfigManager.getInstance().getIntProperty(
                 ConfigConstants.SYSTEM_ID_CHANGE_INTERVAL_MINUTES,
                 ConfigConstants.DEFAULT_SYSTEM_ID_CHANGE_INTERVAL_MINUTES
         );
-        // 计算当前时间属于第几个时间间隔
+        /** 计算当前时间属于第几个时间间隔 */
         long intervalId = currentTime / (systemIdChangeIntervalMinutes * ConfigConstants.MILLIS_PER_MINUTE);
         return "system_" + intervalId;
     }
@@ -159,7 +170,7 @@ public class SecureDataBuilder {
             throw new IllegalArgumentException("SECURE_DATA构建参数不能为空");
         }
 
-        // 版本(1) + keyLen(4) + ivLen(1) + sm2Key + iv + sm4Ciphertext
+        /** 版本(1) + keyLen(4) + ivLen(1) + sm2Key + iv + sm4Ciphertext */
         byte[] keyLengthBytes = new byte[4];
         keyLengthBytes[0] = (byte) ((encryptedKey.length >> 24) & 0xFF);
         keyLengthBytes[1] = (byte) ((encryptedKey.length >> 16) & 0xFF);
@@ -178,7 +189,7 @@ public class SecureDataBuilder {
         offset += iv.length;
         System.arraycopy(encryptedData, 0, combined, offset, encryptedData.length);
 
-        // Base64编码
+        /** Base64编码 */
         return EccCore.base64Encode(combined);
     }
 
@@ -246,7 +257,7 @@ public class SecureDataBuilder {
      * @throws Exception 如果解析失败
      */
     public ParsedSecureData parseSecureData(String secureData) throws Exception {
-        // 解码Base64
+        /** 解码Base64 */
         byte[] combined = EccCore.base64Decode(secureData);
 
         if (combined.length < 1 + 4 + 1) {
@@ -293,20 +304,42 @@ public class SecureDataBuilder {
         private final byte[] iv;
         private final byte[] encryptedData;
 
+        /**
+         * 创建解析后的 SECURE_DATA 容器。
+         *
+         * @param encryptedKey SM2 加密的对称密钥
+         * @param iv           SM4 IV/nonce
+         * @param encryptedData SM4 加密的敏感数据
+         */
         public ParsedSecureData(byte[] encryptedKey, byte[] iv, byte[] encryptedData) {
             this.encryptedKey = encryptedKey;
             this.iv = iv;
             this.encryptedData = encryptedData;
         }
 
+        /**
+         * 获取 SM2 加密的对称密钥。
+         *
+         * @return SM2 密钥密文
+         */
         public byte[] getEncryptedKey() {
             return encryptedKey;
         }
 
+        /**
+         * 获取 SM4 的 IV/nonce。
+         *
+         * @return IV/nonce 字节数组
+         */
         public byte[] getIv() {
             return iv;
         }
 
+        /**
+         * 获取 SM4 加密的敏感数据。
+         *
+         * @return 密文数据
+         */
         public byte[] getEncryptedData() {
             return encryptedData;
         }
@@ -322,13 +355,13 @@ public class SecureDataBuilder {
      * @throws Exception 如果解密失败
      */
     public String decryptSecureData(String secureData, java.security.PrivateKey privateKey) throws Exception {
-        // 解析SECURE_DATA
+        /** 解析SECURE_DATA */
         ParsedSecureData parsed = parseSecureData(secureData);
 
-        // 解密对称密钥
+        /** 解密对称密钥 */
         SecretKey symmetricKey = keyManager.decryptSymmetricKey(parsed.getEncryptedKey(), privateKey);
 
-        // 解密密文数据
+        /** 解密密文数据 */
         return decryptWithSymmetricKey(parsed.getEncryptedData(), symmetricKey, parsed.getIv());
     }
 

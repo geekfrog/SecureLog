@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2026 宅宅蛙(GeekFrog)
+ * SPDX-License-Identifier: MIT
+ */
 package team.frog.securelogecc.masking;
 
 import team.frog.securelogecc.config.ConfigConstants;
@@ -41,6 +45,11 @@ public class StructuredMaskingConfig {
     private final int highEntropyMinLength;
     private final double highEntropyThreshold;
 
+    /**
+     * 创建结构化脱敏配置快照。
+     *
+     * @param config 配置管理器
+     */
     public StructuredMaskingConfig(ConfigManager config) {
         this.sensitiveKeys = parseKeySet(config.getProperty(ConfigConstants.MASKING_SENSITIVE_KEYS, ConfigConstants.DEFAULT_MASKING_SENSITIVE_KEYS));
         this.tokenLikeKeys = parseKeySet(config.getProperty(ConfigConstants.MASKING_TOKENLIKE_KEYS, ConfigConstants.DEFAULT_MASKING_TOKENLIKE_KEYS));
@@ -87,58 +96,128 @@ public class StructuredMaskingConfig {
         return tokenLikeKeys.contains(k) || tokenLikeKeys.contains(k.replace("_", ""));
     }
 
+    /**
+     * 是否启用 querystring 脱敏。
+     *
+     * @return 是否启用
+     */
     public boolean isQueryStringEnabled() {
         return queryStringEnabled;
     }
 
+    /**
+     * 是否启用兜底脱敏。
+     *
+     * @return 是否启用
+     */
     public boolean isFallbackEnabled() {
         return fallbackEnabled;
     }
 
+    /**
+     * 地址识别是否要求区域关键字。
+     *
+     * @return 是否要求
+     */
     public boolean isAddressRequireRegion() {
         return addressRequireRegion;
     }
 
+    /**
+     * 地址识别是否要求详情关键字。
+     *
+     * @return 是否要求
+     */
     public boolean isAddressRequireDetail() {
         return addressRequireDetail;
     }
 
+    /**
+     * 获取地址区域关键字集合。
+     *
+     * @return 地址区域关键字集合
+     */
     public Set<String> getAddressRegionKeywords() {
         return addressRegionKeywords;
     }
 
+    /**
+     * 获取地址详情关键字集合。
+     *
+     * @return 地址详情关键字集合
+     */
     public Set<String> getAddressDetailKeywords() {
         return addressDetailKeywords;
     }
 
+    /**
+     * 获取地址排除关键字集合。
+     *
+     * @return 地址排除关键字集合
+     */
     public Set<String> getAddressExcludeKeywords() {
         return addressExcludeKeywords;
     }
 
+    /**
+     * 是否启用高熵 token 脱敏。
+     *
+     * @return 是否启用
+     */
     public boolean isHighEntropyEnabled() {
         return highEntropyEnabled;
     }
 
+    /**
+     * 是否要求高熵 token 同时包含大小写与数字。
+     *
+     * @return 是否要求
+     */
     public boolean isHighEntropyRequireUpperLowerDigit() {
         return highEntropyRequireUpperLowerDigit;
     }
 
+    /**
+     * 获取 token 前缀保留长度。
+     *
+     * @return 前缀保留长度
+     */
     public int getTokenKeepPrefix() {
         return tokenKeepPrefix;
     }
 
+    /**
+     * 获取 token 后缀保留长度。
+     *
+     * @return 后缀保留长度
+     */
     public int getTokenKeepSuffix() {
         return tokenKeepSuffix;
     }
 
+    /**
+     * 获取最大 value 长度。
+     *
+     * @return 最大 value 长度
+     */
     public int getMaxValueLength() {
         return maxValueLength;
     }
 
+    /**
+     * 获取高熵 token 最小长度。
+     *
+     * @return 最小长度
+     */
     public int getHighEntropyMinLength() {
         return highEntropyMinLength;
     }
 
+    /**
+     * 获取高熵 token 阈值。
+     *
+     * @return 阈值
+     */
     public double getHighEntropyThreshold() {
         return highEntropyThreshold;
     }

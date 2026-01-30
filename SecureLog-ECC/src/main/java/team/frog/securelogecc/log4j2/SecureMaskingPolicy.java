@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2026 宅宅蛙(GeekFrog)
+ * SPDX-License-Identifier: MIT
+ */
 package team.frog.securelogecc.log4j2;
 
 import org.apache.logging.log4j.core.LogEvent;
@@ -34,6 +38,11 @@ public class SecureMaskingPolicy implements RewritePolicy {
     private volatile String publicKeyFingerprintKey;
     private volatile String[] traceIdKeys;
 
+    /**
+     * 创建 Log4j2 RewritePolicy 实例。
+     *
+     * @return SecureMaskingPolicy 实例
+     */
     @PluginFactory
     public static SecureMaskingPolicy createPolicy() {
         return new SecureMaskingPolicy();

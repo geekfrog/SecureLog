@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2026 宅宅蛙(GeekFrog)
+ * SPDX-License-Identifier: MIT
+ */
 package team.frog.securelogecc.cli;
 
 import team.frog.securelogecc.SecureDataDecrypter;
@@ -41,6 +45,11 @@ import java.util.Date;
 public class Sm2CliApp {
     private static final String DECRYPT_OUTPUT_FILE = "sm2_decrypt_output.txt";
 
+    /**
+     * 启动交互式 CLI。
+     *
+     * @throws Exception 初始化或执行失败时抛出
+     */
     public void runCli() throws Exception {
         BufferedReader reader = new BufferedReader(new InputStreamReader(System.in, StandardCharsets.UTF_8));
         while (true) {
