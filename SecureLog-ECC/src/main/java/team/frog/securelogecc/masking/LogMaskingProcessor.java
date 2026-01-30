@@ -26,8 +26,6 @@ import java.util.Map;
  * </p>
  */
 public class LogMaskingProcessor {
-    private final String secureDataKey;
-    private final String publicKeyFingerprintKey;
     private final String publicKeyFingerprint;
     private final String[] traceIdKeys;
     private final StructuredMaskingEngine maskingEngine;
@@ -69,8 +67,6 @@ public class LogMaskingProcessor {
      */
     public LogMaskingProcessor() {
         ConfigManager config = ConfigManager.getInstance();
-        this.secureDataKey = config.getProperty(ConfigConstants.MDC_SECURE_DATA_KEY, ConfigConstants.DEFAULT_MDC_SECURE_DATA_KEY);
-        this.publicKeyFingerprintKey = config.getProperty(ConfigConstants.MDC_PUB_KEY_FINGERPRINT, ConfigConstants.DEFAULT_MDC_PUB_KEY_FINGERPRINT);
         this.publicKeyFingerprint = config.getPublicKeyFingerprint();
         this.traceIdKeys = splitKeys(config.getProperty(ConfigConstants.MDC_TRACE_ID_KEYS, ConfigConstants.DEFAULT_MDC_TRACE_ID_KEYS));
         this.maskingEngine = new StructuredMaskingEngine(new StructuredMaskingConfig(config));
