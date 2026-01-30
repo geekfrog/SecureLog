@@ -57,6 +57,10 @@ public class SecureMaskingAppender extends UnsynchronizedAppenderBase<ILoggingEv
         super.start();
     }
 
+    /**
+     * 处理并转发日志事件：脱敏消息，写入/移除 SECURE_DATA。
+     * 处理期间临时把 traceId 写入 MDC，并在 finally 中恢复旧值。
+     */
     @Override
     protected void append(ILoggingEvent eventObject) {
         if (eventObject == null) {
@@ -107,6 +111,9 @@ public class SecureMaskingAppender extends UnsynchronizedAppenderBase<ILoggingEv
         }
     }
 
+    /**
+     * 在事件 MDC 上追加或移除 SECURE_DATA 与公钥指纹。
+     */
     private Map<String, String> appendSecureData(Map<String, String> originalMdc, String secureData, String publicKeyFingerprint) {
         Map<String, String> map = new HashMap<>(originalMdc.size() + 2);
         map.putAll(originalMdc);
@@ -123,6 +130,9 @@ public class SecureMaskingAppender extends UnsynchronizedAppenderBase<ILoggingEv
         return map;
     }
 
+    /**
+     * 从事件 MDC 读取 traceId 并临时写入线程 MDC，返回旧值用于恢复。
+     */
     private Map<String, String> bindTraceIdToMdc(Map<String, String> mdcPropertyMap) {
         if (mdcPropertyMap == null || mdcPropertyMap.isEmpty() || traceIdKeys == null || traceIdKeys.length == 0) {
             return null;
@@ -145,6 +155,9 @@ public class SecureMaskingAppender extends UnsynchronizedAppenderBase<ILoggingEv
         return previous;
     }
 
+    /**
+     * 恢复线程 MDC 中的 traceId 到处理前的状态。
+     */
     private void restoreTraceIdMdc(Map<String, String> previous) {
         if (previous == null || previous.isEmpty()) {
             return;

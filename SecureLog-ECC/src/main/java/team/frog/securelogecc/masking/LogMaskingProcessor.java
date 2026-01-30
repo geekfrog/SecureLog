@@ -86,6 +86,9 @@ public class LogMaskingProcessor {
         }
     }
 
+    /**
+     * 对外入口：仅返回处理结果，不直接写线程 MDC。
+     */
     public ProcessResult processLogResult(String originalMessage) {
         return process(originalMessage);
     }
@@ -111,6 +114,9 @@ public class LogMaskingProcessor {
         return new ProcessResult(r.getMasked(), secureData, fingerprint);
     }
 
+    /**
+     * 根据 traceId 选择会话密钥或系统密钥路径，生成 SECURE_DATA。
+     */
     private String buildSecureData(String sensitiveDataJson, String traceId) {
         try {
             if (this.secureDataBuilder == null) {
@@ -180,6 +186,9 @@ public class LogMaskingProcessor {
         return sb.toString();
     }
 
+    /**
+     * 按配置 key 列表从 MDC 中读取 traceId。
+     */
     private String getTraceIdFromMdc() {
         if (traceIdKeys == null) {
             return null;
