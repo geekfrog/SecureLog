@@ -15,6 +15,41 @@ SecureLog ECC 是基于国密算法的日志安全组件，能够在保持原有
   - `SECURE_DATA`：原始敏感值的加密载荷（Base64 格式）
   - `PUB_KEY_FINGERPRINT`：当前加密所用公钥的摘要（Base64 格式），用于快速定位对应的私钥
 
+## 脱敏范围(默认配置)
+
+- 强敏感 key：password、pwd、pass、token、access_token、clientSecret、secret、apiKey、idcard、cardNumber、jbrCardNumber、mobile、phone、tel、email、address（大小写不敏感）
+- 值形态识别：手机号、身份证、邮箱、严格地址、高熵 token
+- 结构化优先顺序：JSON → SQL Parameters → URL query → querystring → key/value → 纯文本兜底
+- 兜底扫描范围：身份证、手机号、邮箱、严格地址（不做高熵 token 裸扫）
+
+## 脱敏示例
+
+```text
+JSON
+输入：{"password":"123456","mobile":"13800138000","token":"AbCdef1234567890XyZ"}
+输出：{"password":"******","mobile":"138****8000","token":"AbCd****90XyZ"}
+
+SQL Parameters
+输入：Parameters: 13800138000(String), 2024-01-01(Date)
+输出：Parameters: 138****8000(String), 2024-01-01(Date)
+
+URL query
+输入：/api/login?token=AbCdef1234567890XyZ&mobile=13800138000
+输出：/api/login?token=AbCd****90XyZ&mobile=138****8000
+
+querystring
+输入：token=AbCdef1234567890XyZ&email=test@example.com
+输出：token=AbCd****90XyZ&email=te***@example.com
+
+key/value
+输入：password=123456 token: AbCdef1234567890XyZ
+输出：password=****** token: AbCd****90XyZ
+
+纯文本
+输入：用户手机号13800138000，身份证11010519491231002X
+输出：用户手机号138****8000，身份证110105********002X
+```
+
 ## 目录结构
 
 - `SecureLog-ECC/`：组件本体（打包产物 `team.frog:securelog-ecc`）
