@@ -114,13 +114,13 @@ ecc.system.key.cache.buffer.percentage=0.1
 ecc.system.id.change.interval.minutes=15
 ```
 
-完整配置说明请参考：[securelog-ecc.properties](file:///e:/trae/LogSecure/SecureLog-ECC/src/main/resources/securelog-ecc.properties) 和 [项目技术文档.md](file:///e:/trae/LogSecure/%E9%A1%B9%E7%9B%AE%E6%8A%80%E6%9C%AF%E6%96%87%E6%A1%A3.md)。
+完整配置说明请参考：[securelog-ecc.properties](SecureLog-ECC/src/main/resources/securelog-ecc.properties) 和 [项目技术文档.md](项目技术文档.md)。
 
 ### 3. 配置日志框架接入
 
 #### 3.1 Logback（`logback.xml`）
 
-使用 [SecureMaskingAppender](file:///e:/trae/LogSecure/SecureLog-ECC/src/main/java/team/frog/securelogecc/logback/SecureMaskingAppender.java) 包装目标 Appender：
+使用 [SecureMaskingAppender](SecureLog-ECC/src/main/java/team/frog/securelogecc/logback/SecureMaskingAppender.java) 包装目标 Appender：
 
 ```xml
 <configuration>
@@ -144,7 +144,7 @@ ecc.system.id.change.interval.minutes=15
 
 #### 3.2 Log4j2（`log4j2.xml`）
 
-通过 [SecureMaskingPolicy](file:///e:/trae/LogSecure/SecureLog-ECC/src/main/java/team/frog/securelogecc/log4j2/SecureMaskingPolicy.java) 注入脱敏与上下文字段，并配置 `packages` 属性以加载插件：
+通过 [SecureMaskingPolicy](SecureLog-ECC/src/main/java/team/frog/securelogecc/log4j2/SecureMaskingPolicy.java) 注入脱敏与上下文字段，并配置 `packages` 属性以加载插件：
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -181,7 +181,7 @@ ecc.system.id.change.interval.minutes=15
 
 ## 解密 `SECURE_DATA`
 
-使用 [SecureDataDecrypter](file:///e:/trae/LogSecure/SecureLog-ECC/src/main/java/team/frog/securelogecc/SecureDataDecrypter.java)：
+使用 [SecureDataDecrypter](SecureLog-ECC/src/main/java/team/frog/securelogecc/SecureDataDecrypter.java)：
 
 ```java
 String plaintextJson =
@@ -190,19 +190,19 @@ String plaintextJson =
 
 如果你需要按 `PUB_KEY_FINGERPRINT` 快速定位私钥，可使用：
 
-- [EccCore.publicKeyFingerprint](file:///e:/trae/LogSecure/SecureLog-ECC/src/main/java/team/frog/securelogecc/core/EccCore.java#L113-L126) 计算公钥摘要（Base64 公钥 → Base64 解码 → SHA-256 → 前 20 字节 → Base64）
+- [EccCore.publicKeyFingerprint](SecureLog-ECC/src/main/java/team/frog/securelogecc/core/EccCore.java#L113-L126) 计算公钥摘要（Base64 公钥 → Base64 解码 → SHA-256 → 前 20 字节 → Base64）
 
 组件侧会在加载公钥配置时缓存摘要（避免重复计算），见：
 
-- [ConfigManager.getPublicKeyFingerprint](file:///e:/trae/LogSecure/SecureLog-ECC/src/main/java/team/frog/securelogecc/manager/ConfigManager.java#L130-L143)
+- [ConfigManager.getPublicKeyFingerprint](SecureLog-ECC/src/main/java/team/frog/securelogecc/manager/ConfigManager.java#L130-L143)
 
 ## CLI（生成密钥对 / 解密）
 
-组件提供交互式 CLI：[Sm2CliApp](file:///e:/trae/LogSecure/SecureLog-ECC/src/main/java/team/frog/securelogecc/cli/Sm2CliApp.java)。
+组件提供交互式 CLI：[Sm2CliApp](SecureLog-ECC/src/main/java/team/frog/securelogecc/cli/Sm2CliApp.java)。
 
 示例工程中已提供可直接运行的入口：
 
-- [SecureLogCli](file:///e:/trae/LogSecure/logback-only-project/src/main/java/team/frog/securelogecc/sample/logback/SecureLogCli.java)
+- [SecureLogCli](logback-only-project/src/main/java/team/frog/securelogecc/sample/logback/SecureLogCli.java)
 
 CLI 在输出公钥 Base64 后，会额外输出 `公钥摘要`（用于密钥识别与检索）。
 
@@ -246,6 +246,6 @@ mvn -f SecureLog-ECC/pom.xml install
 
 ### 运行示例
 
-- Logback benchmark：见 [LogbackFileBenchmark](file:///e:/trae/LogSecure/logback-only-project/src/main/java/team/frog/securelogecc/sample/logback/LogbackFileBenchmark.java)
-- Log4j2 benchmark：见 [Log4j2FileBenchmark](file:///e:/trae/LogSecure/log4j2-only-project/src/main/java/team/frog/securelogecc/sample/log4j2/Log4j2FileBenchmark.java)
+- Logback benchmark：见 [LogbackFileBenchmark](logback-only-project/src/main/java/team/frog/securelogecc/sample/logback/LogbackFileBenchmark.java)
+- Log4j2 benchmark：见 [Log4j2FileBenchmark](log4j2-only-project/src/main/java/team/frog/securelogecc/sample/log4j2/Log4j2FileBenchmark.java)
 
