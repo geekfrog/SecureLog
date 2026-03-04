@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2026 宅宅蛙(GeekFrog)
+ * SPDX-License-Identifier: MIT
+ */
 package team.frog.securelogecc.config;
 
 import team.frog.securelogecc.manager.ConfigManager;
@@ -19,17 +23,27 @@ import java.security.Security;
  * <p>该类为纯静态工具类，首次调用会触发 Provider 的加载与注册（若未注册）。</p>
  */
 public final class CryptoConfig {
+    /** 当前配置的 Provider 类名缓存 */
     private static volatile String cachedProviderConfig;
+    /** 已解析的 Provider 名称缓存 */
     private static volatile String cachedProviderName;
 
     private CryptoConfig() {
     }
 
+    /**
+     * 获取已解析并注册的 Provider 名称。
+     *
+     * @return Provider 名称
+     */
     public static String getCryptoProvider() {
         ensureProviderAvailable();
         return cachedProviderName;
     }
 
+    /**
+     * 确保加密 Provider 已注册并可用。
+     */
     public static void ensureProviderAvailable() {
         String providerConfig = ConfigManager.getInstance().getProperty(
                 ConfigConstants.CRYPTO_PROVIDER,
@@ -46,14 +60,29 @@ public final class CryptoConfig {
         cachedProviderName = resolvedProvider.getName();
     }
 
+    /**
+     * 获取 SM2 曲线名称配置。
+     *
+     * @return SM2 曲线名称
+     */
     public static String getSm2CurveName() {
         return ConfigManager.getInstance().getProperty(ConfigConstants.SM2_CURVE_NAME, ConfigConstants.DEFAULT_SM2_CURVE_NAME);
     }
 
+    /**
+     * 获取 SM2 加密 transformation 配置。
+     *
+     * @return SM2 transformation
+     */
     public static String getSm2CipherTransformation() {
         return ConfigManager.getInstance().getProperty(ConfigConstants.SM2_CIPHER_TRANSFORMATION, ConfigConstants.DEFAULT_SM2_CIPHER_TRANSFORMATION);
     }
 
+    /**
+     * 获取 SM4 加密 transformation 配置。
+     *
+     * @return SM4 transformation
+     */
     public static String getSm4CipherTransformation() {
         return ConfigManager.getInstance().getProperty(ConfigConstants.SM4_CIPHER_TRANSFORMATION, ConfigConstants.DEFAULT_SM4_CIPHER_TRANSFORMATION);
     }

@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2026 宅宅蛙(GeekFrog)
+ * SPDX-License-Identifier: MIT
+ */
 package team.frog.securelogecc.core;
 
 import team.frog.securelogecc.config.CryptoConfig;
@@ -110,6 +114,12 @@ public class EccCore {
         }
     }
 
+    /**
+     * 计算公钥指纹。
+     *
+     * @param base64PublicKey Base64 公钥
+     * @return 公钥指纹（Base64）
+     */
     public static String publicKeyFingerprint(String base64PublicKey) {
         if (base64PublicKey == null || base64PublicKey.trim().isEmpty()) {
             return null;

@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2026 宅宅蛙(GeekFrog)
+ * SPDX-License-Identifier: MIT
+ */
 package team.frog.securelogecc.masking;
 
 import org.slf4j.MDC;
@@ -26,32 +30,59 @@ import java.util.Map;
  * </p>
  */
 public class LogMaskingProcessor {
-    private final String secureDataKey;
-    private final String publicKeyFingerprintKey;
+    /** 公钥指纹（用于 SECURE_DATA 的关联标识） */
     private final String publicKeyFingerprint;
+    /** MDC 中可能包含 traceId 的 key 列表 */
     private final String[] traceIdKeys;
+    /** 结构化优先脱敏引擎 */
     private final StructuredMaskingEngine maskingEngine;
+    /** SECURE_DATA 构建器（可按需延迟初始化） */
     private SecureDataBuilder secureDataBuilder;
 
+    /**
+     * 脱敏处理结果。
+     */
     public static class ProcessResult {
         private final String desensitizedMessage;
         private final String secureData;
         private final String publicKeyFingerprint;
 
+        /**
+         * 创建处理结果。
+         *
+         * @param desensitizedMessage 脱敏后的日志文本
+         * @param secureData SECURE_DATA Base64
+         * @param publicKeyFingerprint 公钥指纹
+         */
         public ProcessResult(String desensitizedMessage, String secureData, String publicKeyFingerprint) {
             this.desensitizedMessage = desensitizedMessage;
             this.secureData = secureData;
             this.publicKeyFingerprint = publicKeyFingerprint;
         }
 
+        /**
+         * 获取脱敏后的日志文本。
+         *
+         * @return 脱敏后的日志文本
+         */
         public String getDesensitizedMessage() {
             return desensitizedMessage;
         }
 
+        /**
+         * 获取 SECURE_DATA。
+         *
+         * @return SECURE_DATA Base64
+         */
         public String getSecureData() {
             return secureData;
         }
 
+        /**
+         * 获取公钥指纹。
+         *
+         * @return 公钥指纹
+         */
         public String getPublicKeyFingerprint() {
             return publicKeyFingerprint;
         }
@@ -69,8 +100,6 @@ public class LogMaskingProcessor {
      */
     public LogMaskingProcessor() {
         ConfigManager config = ConfigManager.getInstance();
-        this.secureDataKey = config.getProperty(ConfigConstants.MDC_SECURE_DATA_KEY, ConfigConstants.DEFAULT_MDC_SECURE_DATA_KEY);
-        this.publicKeyFingerprintKey = config.getProperty(ConfigConstants.MDC_PUB_KEY_FINGERPRINT, ConfigConstants.DEFAULT_MDC_PUB_KEY_FINGERPRINT);
         this.publicKeyFingerprint = config.getPublicKeyFingerprint();
         this.traceIdKeys = splitKeys(config.getProperty(ConfigConstants.MDC_TRACE_ID_KEYS, ConfigConstants.DEFAULT_MDC_TRACE_ID_KEYS));
         this.maskingEngine = new StructuredMaskingEngine(new StructuredMaskingConfig(config));
@@ -86,6 +115,9 @@ public class LogMaskingProcessor {
         }
     }
 
+    /**
+     * 对外入口：仅返回处理结果，不直接写线程 MDC。
+     */
     public ProcessResult processLogResult(String originalMessage) {
         return process(originalMessage);
     }
@@ -111,6 +143,9 @@ public class LogMaskingProcessor {
         return new ProcessResult(r.getMasked(), secureData, fingerprint);
     }
 
+    /**
+     * 根据 traceId 选择会话密钥或系统密钥路径，生成 SECURE_DATA。
+     */
     private String buildSecureData(String sensitiveDataJson, String traceId) {
         try {
             if (this.secureDataBuilder == null) {
@@ -180,6 +215,9 @@ public class LogMaskingProcessor {
         return sb.toString();
     }
 
+    /**
+     * 按配置 key 列表从 MDC 中读取 traceId。
+     */
     private String getTraceIdFromMdc() {
         if (traceIdKeys == null) {
             return null;

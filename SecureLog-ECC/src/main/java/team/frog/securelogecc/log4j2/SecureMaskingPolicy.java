@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2026 宅宅蛙(GeekFrog)
+ * SPDX-License-Identifier: MIT
+ */
 package team.frog.securelogecc.log4j2;
 
 import org.apache.logging.log4j.core.LogEvent;
@@ -34,11 +38,20 @@ public class SecureMaskingPolicy implements RewritePolicy {
     private volatile String publicKeyFingerprintKey;
     private volatile String[] traceIdKeys;
 
+    /**
+     * 创建 Log4j2 RewritePolicy 实例。
+     *
+     * @return SecureMaskingPolicy 实例
+     */
     @PluginFactory
     public static SecureMaskingPolicy createPolicy() {
         return new SecureMaskingPolicy();
     }
 
+    /**
+     * 重写日志事件：脱敏消息，并将 SECURE_DATA 写入事件上下文。
+     * 处理期间临时把 traceId 写入 MDC，结束后恢复原值，避免污染线程上下文。
+     */
     @Override
     public LogEvent rewrite(LogEvent source) {
         if (source == null) {
@@ -102,6 +115,9 @@ public class SecureMaskingPolicy implements RewritePolicy {
         return builder.build();
     }
 
+    /**
+     * 从事件上下文读取 traceId 并临时写入 MDC，返回旧值用于恢复。
+     */
     private Map<String, String> bindTraceIdToMdc(ReadOnlyStringMap contextData) {
         if (contextData == null || traceIdKeys == null || traceIdKeys.length == 0) {
             return null;
@@ -128,6 +144,9 @@ public class SecureMaskingPolicy implements RewritePolicy {
         return previous;
     }
 
+    /**
+     * 按快照恢复 MDC 中的 traceId，避免跨事件串值。
+     */
     private void restoreTraceIdMdc(Map<String, String> previous) {
         if (previous == null || previous.isEmpty()) {
             return;

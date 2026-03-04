@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2026 宅宅蛙(GeekFrog)
+ * SPDX-License-Identifier: MIT
+ */
 package team.frog.securelogecc.manager;
 
 import team.frog.securelogecc.config.ConfigConstants;
@@ -13,12 +17,18 @@ import java.util.Properties;
  */
 public class ConfigManager {
 
+    /** 默认配置文件名 */
     private static final String DEFAULT_CONFIG_FILE = "securelog-ecc.properties";
+    /** 单例实例 */
     private static final ConfigManager INSTANCE = new ConfigManager();
 
+    /** 当前加载的配置项集合 */
     private Properties properties;
+    /** 初始化标记，防止重复加载 */
     private volatile boolean initialized = false;
+    /** ECC 公钥 Base64 缓存，用于判断是否需要重新计算指纹 */
     private volatile String cachedPublicKeyBase64;
+    /** ECC 公钥指纹缓存 */
     private volatile String cachedPublicKeyFingerprint;
 
     private ConfigManager() {
@@ -50,18 +60,18 @@ public class ConfigManager {
      * @throws Exception 如果初始化失败
      */
     public synchronized void initialize(String configFile) throws Exception {
-        // 保存当前设置的属性
+        /** 保存当前设置的属性 */
         Properties currentProperties = new Properties();
         currentProperties.putAll(properties);
 
-        // 清除并重新加载
+        /** 清除并重新加载 */
         properties.clear();
 
-        // 尝试从文件系统加载
+        /** 尝试从文件系统加载 */
         try {
             try (FileInputStream fis = new FileInputStream(configFile)) {
                 properties.load(new InputStreamReader(fis, StandardCharsets.UTF_8));
-                // 恢复之前设置的属性（这些属性优先级更高）
+                /** 恢复之前设置的属性（这些属性优先级更高） */
                 properties.putAll(currentProperties);
                 initialized = true;
                 cachedPublicKeyBase64 = null;
@@ -69,14 +79,14 @@ public class ConfigManager {
                 return;
             }
         } catch (FileNotFoundException e) {
-            // 文件不存在，继续使用默认值
+            /** 文件不存在，继续使用默认值 */
         }
 
-        // 尝试从类路径加载
+        /** 尝试从类路径加载 */
         try (InputStream is = getClass().getClassLoader().getResourceAsStream(configFile)) {
             if (is != null) {
                 properties.load(new InputStreamReader(is, StandardCharsets.UTF_8));
-                // 恢复之前设置的属性（这些属性优先级更高）
+                /** 恢复之前设置的属性（这些属性优先级更高） */
                 properties.putAll(currentProperties);
                 initialized = true;
                 cachedPublicKeyBase64 = null;
@@ -85,9 +95,9 @@ public class ConfigManager {
             }
         }
 
-        // 如果没有找到配置文件，使用默认值
+        /** 如果没有找到配置文件，使用默认值 */
         loadDefaults();
-        // 恢复之前设置的属性（这些属性优先级更高）
+        /** 恢复之前设置的属性（这些属性优先级更高） */
         properties.putAll(currentProperties);
         initialized = true;
         cachedPublicKeyBase64 = null;
@@ -120,13 +130,18 @@ public class ConfigManager {
             try {
                 initialize();
             } catch (Exception e) {
-                // 初始化失败时直接返回默认值，避免重复初始化
+                /** 初始化失败时直接返回默认值，避免重复初始化 */
                 return defaultValue;
             }
         }
         return properties.getProperty(key, defaultValue);
     }
 
+    /**
+     * 获取配置的 ECC 公钥指纹。
+     *
+     * @return ECC 公钥指纹
+     */
     public String getPublicKeyFingerprint() {
         String publicKeyBase64 = getProperty(ConfigConstants.ECC_PUBLIC_KEY, "");
         if (publicKeyBase64 == null) {
@@ -156,7 +171,7 @@ public class ConfigManager {
                 return Integer.parseInt(value);
             }
         } catch (NumberFormatException e) {
-            // 忽略，返回默认值
+            /** 忽略，返回默认值 */
         }
         return defaultValue;
     }
@@ -190,7 +205,7 @@ public class ConfigManager {
                 return Double.parseDouble(value);
             }
         } catch (NumberFormatException e) {
-            // 忽略，返回默认值
+            /** 忽略，返回默认值 */
         }
         return defaultValue;
     }

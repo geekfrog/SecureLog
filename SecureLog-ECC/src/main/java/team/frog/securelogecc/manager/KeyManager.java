@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2026 宅宅蛙(GeekFrog)
+ * SPDX-License-Identifier: MIT
+ */
 package team.frog.securelogecc.manager;
 
 import team.frog.securelogecc.config.ConfigConstants;
@@ -22,27 +26,29 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public class KeyManager {
 
+    /** SM4 对称密钥算法标识 */
     private static final String SM4_ALGORITHM = "SM4";
+    /** SM4 密钥长度（bit） */
     private static final int SM4_KEY_SIZE = 128;
 
-    // 会话密钥缓存：trace_id -> 会话密钥信息
+    /** 会话密钥缓存：trace_id -> 会话密钥信息 */
     private final Map<String, KeyInfo> sessionKeyCache;
-    // 会话密钥访问队列：维护创建顺序
+    /** 会话密钥访问队列：维护创建顺序 */
     private final ConcurrentLinkedQueue<String> sessionAccessQueue;
 
-    // 系统密钥缓存：系统标识符 -> 系统密钥信息
+    /** 系统密钥缓存：系统标识符 -> 系统密钥信息 */
     private final Map<String, KeyInfo> systemKeyCache;
-    // 系统密钥访问队列：维护创建顺序
+    /** 系统密钥访问队列：维护创建顺序 */
     private final ConcurrentLinkedQueue<String> systemAccessQueue;
 
-    // 从配置文件加载的ECC公钥
+    /** 从配置文件加载的ECC公钥 */
     private final PublicKey configuredPublicKey;
 
-    // 配置参数
+    /** 配置参数 */
     private int sessionKeyCacheSize;
     private int systemKeyCacheSize;
 
-    // 清理标记，避免高并发下的重复清理
+    /** 清理标记，避免高并发下的重复清理 */
     private final AtomicBoolean isSessionCleaning = new AtomicBoolean(false);
     private final AtomicBoolean isSystemCleaning = new AtomicBoolean(false);
 
@@ -102,7 +108,7 @@ public class KeyManager {
      */
     private static double getConfigSessionKeyCacheBufferPercentage() {
         double percentage = getDoubleConfig(ConfigConstants.SESSION_KEY_CACHE_BUFFER_PERCENTAGE, ConfigConstants.DEFAULT_SESSION_KEY_CACHE_BUFFER_PERCENTAGE);
-        // 确保百分比在合理范围内
+        /** 确保百分比在合理范围内 */
         return Math.max(0.0, Math.min(1.0, percentage));
     }
 
@@ -113,7 +119,7 @@ public class KeyManager {
      */
     private static double getConfigSystemKeyCacheBufferPercentage() {
         double percentage = getDoubleConfig(ConfigConstants.SYSTEM_KEY_CACHE_BUFFER_PERCENTAGE, ConfigConstants.DEFAULT_SYSTEM_KEY_CACHE_BUFFER_PERCENTAGE);
-        // 确保百分比在合理范围内
+        /** 确保百分比在合理范围内 */
         return Math.max(0.0, Math.min(1.0, percentage));
     }
 
@@ -127,7 +133,7 @@ public class KeyManager {
      */
     public KeyManager(int sessionKeyCacheSize, int systemKeyCacheSize) throws Exception {
         CryptoConfig.ensureProviderAvailable();
-        // 加载配置的ECC公钥
+        /** 加载配置的ECC公钥 */
         String publicKeyStr = ConfigManager.getInstance().getProperty(ConfigConstants.ECC_PUBLIC_KEY, "");
         if (publicKeyStr.isEmpty()) {
             throw new Exception("必须配置ECC公钥: " + ConfigConstants.ECC_PUBLIC_KEY);
@@ -203,13 +209,14 @@ public class KeyManager {
      */
     private void evictOldestKeys(Map<String, KeyInfo> cache, ConcurrentLinkedQueue<String> accessQueue,
                                  int cacheSize, double bufferPercentage) {
-        // 计算清理目标
-        // 目标大小 = 总缓存大小 × (1 - 缓冲百分比)
-        // 例如：100 × (1 - 0.3) = 70，留出30个空位
+        /** 计算清理目标 */
+        /** 目标大小 = 总缓存大小 × (1 - 缓冲百分比) */
+        /** 例如：100 × (1 - 0.3) = 70，留出30个空位 */
         int targetSize = (int) (cacheSize * (1 - bufferPercentage));
-        targetSize = Math.max(0, targetSize); // 确保不小于0
+        /** 确保不小于0 */
+        targetSize = Math.max(0, targetSize);
 
-        // 如果缓存超过目标大小，从队列头部移除最旧的密钥
+        /** 如果缓存超过目标大小，从队列头部移除最旧的密钥 */
         while (cache.size() > targetSize && !accessQueue.isEmpty()) {
             String oldest = accessQueue.poll();
             if (oldest != null) {
@@ -427,24 +434,49 @@ public class KeyManager {
      * 封装SM4密钥、SM2密文和创建时间
      */
     public static class KeyInfo {
-        private final SecretKey sm4Key;           // SM4对称密钥
-        private final byte[] sm2EncryptedKey;     // SM2加密的SM4密钥密文
-        private final long creationTime;          // 创建时间戳
+        /** SM4对称密钥 */
+        private final SecretKey sm4Key;
+        /** SM2加密的SM4密钥密文 */
+        private final byte[] sm2EncryptedKey;
+        /** 创建时间戳 */
+        private final long creationTime;
 
+        /**
+         * 创建密钥信息。
+         *
+         * @param sm4Key SM4 对称密钥
+         * @param sm2EncryptedKey SM2 加密的 SM4 密钥密文
+         * @param creationTime 创建时间戳
+         */
         public KeyInfo(SecretKey sm4Key, byte[] sm2EncryptedKey, long creationTime) {
             this.sm4Key = sm4Key;
             this.sm2EncryptedKey = sm2EncryptedKey;
             this.creationTime = creationTime;
         }
 
+        /**
+         * 获取 SM4 对称密钥。
+         *
+         * @return SM4 密钥
+         */
         public SecretKey getSm4Key() {
             return sm4Key;
         }
 
+        /**
+         * 获取 SM2 加密的 SM4 密钥密文。
+         *
+         * @return SM2 密钥密文
+         */
         public byte[] getSm2EncryptedKey() {
             return sm2EncryptedKey;
         }
 
+        /**
+         * 获取创建时间戳。
+         *
+         * @return 创建时间戳
+         */
         public long getCreationTime() {
             return creationTime;
         }

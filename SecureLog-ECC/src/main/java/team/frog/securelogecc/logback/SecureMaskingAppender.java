@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2026 宅宅蛙(GeekFrog)
+ * SPDX-License-Identifier: MIT
+ */
 package team.frog.securelogecc.logback;
 
 import ch.qos.logback.classic.spi.ILoggingEvent;
@@ -39,6 +43,9 @@ public class SecureMaskingAppender extends UnsynchronizedAppenderBase<ILoggingEv
     private volatile String publicKeyFingerprintKey = ConfigConstants.DEFAULT_MDC_PUB_KEY_FINGERPRINT;
     private volatile String[] traceIdKeys;
 
+    /**
+     * 初始化配置并启动 Appender。
+     */
     @Override
     public void start() {
         this.secureDataKey = ConfigManager.getInstance().getProperty(
@@ -57,6 +64,10 @@ public class SecureMaskingAppender extends UnsynchronizedAppenderBase<ILoggingEv
         super.start();
     }
 
+    /**
+     * 处理并转发日志事件：脱敏消息，写入/移除 SECURE_DATA。
+     * 处理期间临时把 traceId 写入 MDC，并在 finally 中恢复旧值。
+     */
     @Override
     protected void append(ILoggingEvent eventObject) {
         if (eventObject == null) {
@@ -107,6 +118,9 @@ public class SecureMaskingAppender extends UnsynchronizedAppenderBase<ILoggingEv
         }
     }
 
+    /**
+     * 在事件 MDC 上追加或移除 SECURE_DATA 与公钥指纹。
+     */
     private Map<String, String> appendSecureData(Map<String, String> originalMdc, String secureData, String publicKeyFingerprint) {
         Map<String, String> map = new HashMap<>(originalMdc.size() + 2);
         map.putAll(originalMdc);
@@ -123,6 +137,9 @@ public class SecureMaskingAppender extends UnsynchronizedAppenderBase<ILoggingEv
         return map;
     }
 
+    /**
+     * 从事件 MDC 读取 traceId 并临时写入线程 MDC，返回旧值用于恢复。
+     */
     private Map<String, String> bindTraceIdToMdc(Map<String, String> mdcPropertyMap) {
         if (mdcPropertyMap == null || mdcPropertyMap.isEmpty() || traceIdKeys == null || traceIdKeys.length == 0) {
             return null;
@@ -145,6 +162,9 @@ public class SecureMaskingAppender extends UnsynchronizedAppenderBase<ILoggingEv
         return previous;
     }
 
+    /**
+     * 恢复线程 MDC 中的 traceId 到处理前的状态。
+     */
     private void restoreTraceIdMdc(Map<String, String> previous) {
         if (previous == null || previous.isEmpty()) {
             return;
@@ -167,36 +187,73 @@ public class SecureMaskingAppender extends UnsynchronizedAppenderBase<ILoggingEv
         return keysConfig.split("\\s*,\\s*");
     }
 
+    /**
+     * 添加下游 Appender。
+     *
+     * @param newAppender 下游 Appender
+     */
     @Override
     public void addAppender(Appender<ILoggingEvent> newAppender) {
         aai.addAppender(newAppender);
     }
 
+    /**
+     * 获取已挂载 Appender 的迭代器。
+     *
+     * @return Appender 迭代器
+     */
     @Override
     public Iterator<Appender<ILoggingEvent>> iteratorForAppenders() {
         return aai.iteratorForAppenders();
     }
 
+    /**
+     * 按名称获取 Appender。
+     *
+     * @param name Appender 名称
+     * @return Appender 实例
+     */
     @Override
     public Appender<ILoggingEvent> getAppender(String name) {
         return aai.getAppender(name);
     }
 
+    /**
+     * 判断 Appender 是否已挂载。
+     *
+     * @param appender Appender 实例
+     * @return 是否已挂载
+     */
     @Override
     public boolean isAttached(Appender<ILoggingEvent> appender) {
         return aai.isAttached(appender);
     }
 
+    /**
+     * 解除并停止所有 Appender。
+     */
     @Override
     public void detachAndStopAllAppenders() {
         aai.detachAndStopAllAppenders();
     }
 
+    /**
+     * 按实例解除 Appender。
+     *
+     * @param appender Appender 实例
+     * @return 是否成功移除
+     */
     @Override
     public boolean detachAppender(Appender<ILoggingEvent> appender) {
         return aai.detachAppender(appender);
     }
 
+    /**
+     * 按名称解除 Appender。
+     *
+     * @param name Appender 名称
+     * @return 是否成功移除
+     */
     @Override
     public boolean detachAppender(String name) {
         return aai.detachAppender(name);
