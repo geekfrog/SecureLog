@@ -6,7 +6,7 @@
 
     <groupId>team.frog</groupId>
     <artifactId>securelog-ecc</artifactId>
-    <version>1.0.2</version>
+    <version>1.0.3</version>
     <packaging>jar</packaging>
 
     <name>SecureLog ECC</name>
@@ -99,20 +99,20 @@
                         <configuration>
                             <!-- 忽略所有HTML检查 -->
                             <doclint>none</doclint>
-                            
+
                             <!-- 其他配置 -->
                             <charset>UTF-8</charset>
                             <encoding>UTF-8</encoding>
                             <docencoding>UTF-8</docencoding>
                             <show>public</show>
-                            
+
                             <!-- 如果是Java 8+，还需要添加 -->
                             <source>8</source>
                         </configuration>
                     </execution>
                 </executions>
             </plugin>
-            
+
             <!-- GPG签名 -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -126,7 +126,7 @@
                     </execution>
                 </executions>
             </plugin>
-            
+
             <plugin>
                 <groupId>org.sonatype.central</groupId>
                 <artifactId>central-publishing-maven-plugin</artifactId>

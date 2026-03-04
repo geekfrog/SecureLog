@@ -120,13 +120,15 @@ public class JsonStructuredMasker {
                 String fullPath = buildPath(prefix, stack, fieldForValue);
 
                 if (token == JsonToken.VALUE_STRING) {
+                    String originalValue = parser.getText();
                     JsonLocation loc = parser.getTokenLocation();
-                    int start = safeIntOffset(loc.getCharOffset());
-                    int end = findStringTokenEnd(json, start);
+                    int fromOffset = safeIntOffset(loc.getCharOffset());
+                    Span span = locateCurrentStringSpan(json, fromOffset, originalValue);
+                    int start = span.start;
+                    int end = span.endExclusive;
                     if (start < 0 || end <= start || end > json.length()) {
                         continue;
                     }
-                    String originalValue = parser.getText();
                     String maskedValue = maskStringValue(fullPath, fieldForValue, originalValue, collector, depth);
                     if (!originalValue.equals(maskedValue)) {
                         String escaped = escapeJsonString(maskedValue);
@@ -279,20 +281,35 @@ public class JsonStructuredMasker {
         return (int) offset;
     }
 
-    private int findStringTokenEnd(String json, int start) {
-        if (start < 0 || start >= json.length()) {
-            return -1;
+    private Span locateCurrentStringSpan(String json, int fromOffset, String expectedValue) {
+        if (json == null || json.isEmpty()) {
+            return Span.invalid();
         }
-        int i = start;
-        while (i < json.length() && json.charAt(i) != '"') {
-            i++;
+        int from = Math.max(0, Math.min(fromOffset, json.length() - 1));
+        int i = from;
+        int scanBudget = 4096;
+        while (i < json.length() && scanBudget > 0) {
+            int openQuote = json.indexOf('"', i);
+            if (openQuote < 0) {
+                return Span.invalid();
+            }
+            int closeQuote = findStringCloseQuoteForward(json, openQuote + 1);
+            if (closeQuote < 0) {
+                return Span.invalid();
+            }
+            String decoded = decodeJsonStringLiteral(json.substring(openQuote, closeQuote + 1));
+            if (expectedValue.equals(decoded)) {
+                return new Span(openQuote, closeQuote + 1);
+            }
+            scanBudget -= (closeQuote - openQuote + 1);
+            i = closeQuote + 1;
         }
-        if (i >= json.length()) {
-            return -1;
-        }
-        i++;
+        return Span.invalid();
+    }
+
+    private int findStringCloseQuoteForward(String json, int from) {
         boolean escaped = false;
-        for (; i < json.length(); i++) {
+        for (int i = from; i < json.length(); i++) {
             char c = json.charAt(i);
             if (escaped) {
                 escaped = false;
@@ -303,10 +320,21 @@ public class JsonStructuredMasker {
                 continue;
             }
             if (c == '"') {
-                return i + 1;
+                return i;
             }
         }
         return -1;
+    }
+
+    private String decodeJsonStringLiteral(String jsonLiteral) {
+        try (JsonParser p = jsonFactory.createParser(jsonLiteral)) {
+            if (p.nextToken() == JsonToken.VALUE_STRING) {
+                return p.getText();
+            }
+            return null;
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     private String escapeJsonString(String s) {
@@ -355,6 +383,20 @@ public class JsonStructuredMasker {
         }
     }
 
+    private static final class Span {
+        private final int start;
+        private final int endExclusive;
+
+        private Span(int start, int endExclusive) {
+            this.start = start;
+            this.endExclusive = endExclusive;
+        }
+
+        private static Span invalid() {
+            return new Span(-1, -1);
+        }
+    }
+
     private static final class PathFrame {
         private final String name;
         private final boolean isArray;
@@ -375,4 +417,3 @@ public class JsonStructuredMasker {
         }
     }
 }
-
